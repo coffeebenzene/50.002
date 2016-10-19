@@ -13,9 +13,11 @@ module adder8 (
   always {
     case (alufn0) {
       1b0:
-        out_tmp = a + b
+        out_tmp = a + b //addition
       1b1:
-        out_tmp = a - b
+        out_tmp = a - b //subtraction
+      default:
+        out_tmp = a + b
     }
 
     out = out_tmp[7:0]
