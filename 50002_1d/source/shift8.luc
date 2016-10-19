@@ -4,7 +4,7 @@ module shift8 (
     input alufn10[2],
     input a[8],
     input b[8],
-    output out
+    output out[8]
   ) {
 
   always {
@@ -17,6 +17,6 @@ module shift8 (
         out = a >> b[2:0];
       2b11:
         out = $signed(a) >>> b[2:0];
-    }    
+    }
   }
 }

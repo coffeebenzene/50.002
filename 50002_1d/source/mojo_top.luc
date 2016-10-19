@@ -58,5 +58,10 @@ module mojo_top (
     io_led[0] = io_dip[0];
     io_led[1] = io_dip[1];
     io_led[2] = alu.out;
+    
+    led[0] = alu.z;
+    led[1] = alu.v;
+    led[2] = alu.n;
+    led[7] = 1; // To test that it is on.
   }    
 }

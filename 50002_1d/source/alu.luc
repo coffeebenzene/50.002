@@ -12,7 +12,7 @@ module alu (
 
   .clk(clk), .rst(rst) {
     adder8 adder;
-    compare8 cmp;
+    comparator8 cmp;
     boole8 bool;
     shift8 shift;
     multiply8 mult;

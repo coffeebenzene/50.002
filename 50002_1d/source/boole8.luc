@@ -7,21 +7,11 @@ module boole8 (
     output out[8]
   ) {
 
+  var i;
+  
   always {
     for (i=0; i < 8; i++) {
-      s = b[i]*2 + a[i]
-      case (s) {
-        2b00:
-          out = alufn30[0]
-        2b01:
-          out = alufn30[1]
-        2b10:
-          out = alufn30[2]
-        2b11:
-          out = alufn30[3]
-        default:
-          out = alufn30[0]
-      }
+      out[i] = alufn30[c{b[i],a[i]}]; // b[i]a[i] is a 2bit selector, to slect value from alufn30
     }
   }
 }
