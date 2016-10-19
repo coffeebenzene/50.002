@@ -1,0 +1,22 @@
+module comparator8 (
+    input clk, //clock
+    input rst, //reset
+    input alufn21[2],
+    input z,
+    input v,
+    input n,
+    output out
+  ) {
+   
+    case (alufn21) {
+      2b01:
+        out = z;
+      2b10:
+        out = n^v;
+      2b11:
+        out = z | (n^v);
+      default:
+        out = 0
+    }
+
+  }
