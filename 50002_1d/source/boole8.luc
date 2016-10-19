@@ -1,0 +1,27 @@
+module boole8 (
+    input clk, //clock
+    input rst, //reset
+    input alufn30[4],
+    input a[8],
+    input b[8],
+    output out[8]
+  ) {
+
+  always {
+    for (i=0; i < 8; i++) {
+      s = b[i]*2 + a[i]
+      case (s) {
+        2b00:
+          out = alufn30[0]
+        2b01:
+          out = alufn30[1]
+        2b10:
+          out = alufn30[2]
+        2b11:
+          out = alufn30[3]
+        default:
+          out = alufn30[0]
+      }
+    }
+  }
+}
