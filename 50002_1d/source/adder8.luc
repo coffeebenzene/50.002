@@ -11,16 +11,19 @@ module adder8 (
   ) {
 
   sig out_tmp[8];
+  sig carry;
   sig xb[8];
   
   always {
     if (alufn0) {
-      xb = -b; // subtraction, negate b
+      xb = ~b; // subtraction, negate b
     } else {
       xb = b; // normal
     }
+    
+    carry = alufn0;
    
-    out_tmp = a + xb;
+    out_tmp = a + xb + carry;
 
     out = out_tmp[7:0];
     z = ~|out_tmp[7:0];
