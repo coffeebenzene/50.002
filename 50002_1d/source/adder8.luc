@@ -1,0 +1,12 @@
+module adder8 (
+    input clk, //clock
+    input rss, //reset
+    input a[8],
+    input b[8],
+    output out[8]
+  ) {
+  
+  always {
+    out = a + b;
+  }
+}
