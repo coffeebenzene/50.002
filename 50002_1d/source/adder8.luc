@@ -1,12 +1,26 @@
 module adder8 (
     input clk, //clock
     input rss, //reset
+    input alufn0,
     input a[8],
     input b[8],
-    output out[8]
+    output out[8],
+    output z,
+    output v,
+    output n
   ) {
-  
+
   always {
-    out = a + b;
+    case (alufn0) {
+      1b0:
+        out_tmp = a + b
+      1b1:
+        out_tmp = a - b
+    }
+
+    out = out_tmp[7:0]
+    z = ~|out;
+    v = (a[7] & b[7] & ~out[7]) | (~a[7] & ~b[7] & out[7])
+    n = out[7]
   }
 }
