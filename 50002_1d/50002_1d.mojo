@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="50002_1d" board="Mojo V3" language="Lucid">
   <files>
+    <src>adder8.luc</src>
+    <src>comparator8.luc</src>
+    <src>boole8.luc</src>
     <src>multiply8.luc</src>
     <src>multi_dec_ctr.luc</src>
     <src>decimal_counter.luc</src>
