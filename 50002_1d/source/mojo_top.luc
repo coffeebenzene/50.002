@@ -15,7 +15,8 @@ module mojo_top (
     output io_seg [8],      // 7-segment LEDs on IO Shield 
     output io_sel [4],      // Digit select on IO Shield
     input io_button [5],    // 5 buttons on IO Shield, order 0-4: up, mid, down, left, right.
-    input io_dip [3][8]     // DIP switches on IO Shield
+    input io_dip [3][8],    // DIP switches on IO Shield
+    input corrupt[3]        // Live wire in to corrupt alu - 0:alufn, 1:a, 2:b
   ) {
   
   sig rst;                  // reset signal
@@ -94,15 +95,15 @@ module mojo_top (
           test_case.d = test_number.out;
           index.d = 5b0;
           led_mem.d = {8b0,8b0,8b0};
-          led[7]=1;
           state.d = state.TESTING;
         }
       state.TESTING:
         test_rom.test_case = test_case.q;
         test_rom.index = index.q;
-        alu.alufn = test_rom.alufn;
-        alu.a = test_rom.a;
-        alu.b = test_rom.b;
+        // Corrupted alu will use dip switches for a,b and alufn
+        if (!corrupt[0]){ alu.alufn = test_rom.alufn; }
+        if (!corrupt[1]){ alu.a = test_rom.a; }
+        if (!corrupt[2]){ alu.b = test_rom.b; }
         led_mem.d = led_mem.q;
         if (alu.out == test_rom.out && 
             alu.z == test_rom.z &&
@@ -123,7 +124,7 @@ module mojo_top (
         }
       state.END:
         led_mem.d = led_mem.q; // Keep led values same.
-        led[7]=1;
+        led[7]=1;        
     }
     // END: Testing circuit
     
