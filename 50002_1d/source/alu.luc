@@ -55,8 +55,7 @@ module alu (
         out = shift.out;
       2b11:
         // Assign [7:1] here. May save wiring for cmp. It doesn't need 8 lines out, just 1.
-        out[7:1] = 7b0000000;
-        out[0] = cmp.out;
+        out = cmp.out;
       default:
         out = 8b00000000;
     }
