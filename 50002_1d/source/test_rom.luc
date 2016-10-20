@@ -117,7 +117,7 @@ module test_rom (
         out = 8b10101011;
         z = 0;
         v = 0;
-        n = 0;
+        n = 1;
       8b00001101: //index 13, sub
         alufn = 6b1;
         a = 8b00101001;
@@ -164,7 +164,7 @@ module test_rom (
         b = 8b10000000;
         out = 8b00000000;
         z = 1;
-        v = 1;
+        v = 0;
         n = 0;
       8b00010011: //index 19, sub
         alufn = 6b1;
@@ -178,6 +178,7 @@ module test_rom (
         alufn = 6b1;
         a = 8b00000000;
         b = 8b00000000;
+        out = 8b00000000;
         z = 1;
         v = 0;
         n = 0;
@@ -187,7 +188,7 @@ module test_rom (
         b = 8b10011100;
         out = 8b01000101;
         z = 0;
-        v = 1;
+        v = 0;
         n = 0;
       8b00010110: //index 22, sub
         alufn = 6b1;
@@ -195,7 +196,7 @@ module test_rom (
         b = 8b01000010;
         out = 8b11110100;
         z = 0;
-        v = 1;
+        v = 0;
         n = 1;
       8b00010111: //index 23, sub
         alufn = 6b1;
