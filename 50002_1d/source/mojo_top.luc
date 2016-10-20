@@ -21,6 +21,7 @@ module mojo_top (
   
   sig rst;                  // reset signal
   sig test_input[7];
+  sig check_zvn;
   
   .clk(clk) {
     // The reset conditioner is used to synchronize the reset signal to the FPGA
@@ -81,7 +82,7 @@ module mojo_top (
     
     test_rom.test_case = 3b111; // 111 is unused.
     test_rom.index = 5b0;
-    
+    check_zvn = 0;
     //END: defaults
     
     
@@ -105,10 +106,12 @@ module mojo_top (
         if (!corrupt[1]){ alu.a = test_rom.a; }
         if (!corrupt[2]){ alu.b = test_rom.b; }
         led_mem.d = led_mem.q;
+        check_zvn = test_rom.alufn[5:1] == 5b00000 || test_rom.alufn[5:3] == 3b110;
         if (alu.out == test_rom.out && 
-            alu.z == test_rom.z &&
-            alu.v == test_rom.v &&
-            alu.n == test_rom.n
+            ((alu.z == test_rom.z &&
+              alu.v == test_rom.v &&
+              alu.n == test_rom.n) || 
+             check_zvn == 0)
            ){ // test_index successful, light up led.
           if (index.q<8){
             led_mem.d[0][index.q] = 1;
