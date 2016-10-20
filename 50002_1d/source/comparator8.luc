@@ -1,6 +1,4 @@
 module comparator8 (
-    input clk, //clock
-    input rst, //reset
     input alufn21[2],
     input z,
     input v,

@@ -1,6 +1,4 @@
 module alu (
-    input clk,  // clock
-    input rst,  // reset
     input alufn[6],
     input a[8],
     input b[8],
@@ -10,13 +8,12 @@ module alu (
     output out[8]
   ) {
 
-  .clk(clk), .rst(rst) {
-    adder8 adder;
-    comparator8 cmp;
-    boole8 bool;
-    shift8 shift;
-    multiply8 mult;
-  }
+  adder8 adder;
+  comparator8 cmp;
+  boole8 bool;
+  shift8 shift;
+  multiply8 mult;
+  
   
   
   always {
@@ -54,7 +51,6 @@ module alu (
       2b10:
         out = shift.out;
       2b11:
-        // Assign [7:1] here. May save wiring for cmp. It doesn't need 8 lines out, just 1.
         out = cmp.out;
       default:
         out = 8b00000000;

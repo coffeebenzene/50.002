@@ -1,6 +1,4 @@
 module boole8 (
-    input clk, //clock
-    input rst, //reset
     input alufn30[4],
     input a[8],
     input b[8],

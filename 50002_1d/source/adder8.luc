@@ -1,6 +1,4 @@
 module adder8 (
-    input clk, //clock
-    input rst, //reset
     input alufn0,
     input a[8],
     input b[8],
@@ -18,7 +16,7 @@ module adder8 (
     if (alufn0) {
       xb = ~b; // subtraction, negate b
     } else {
-      xb = b; // normal
+      xb = b;  // normal
     }
     
     carry = alufn0;

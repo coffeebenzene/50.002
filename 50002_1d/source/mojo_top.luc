@@ -37,7 +37,6 @@ module mojo_top (
       //multi_dec_ctr dec_ctr;
       //counter ctr (#SIZE(1), #DIV(24));
       
-      alu alu;
       fsm state = {INITIAL,TESTING,END}; // Current testing state.
       dff test_case[$clog2(7)];          // Which test_case is running, $clog2(7) = 3.
       dff index[$clog2(24)];             // index of the test in currest test_case, $clog2(24)=5.
@@ -47,6 +46,7 @@ module mojo_top (
   
   seven_seg seg;
   encoder test_number (#WIDTH(7));
+  alu alu;
   test_rom test_rom;
   
 

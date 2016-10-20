@@ -1,6 +1,4 @@
 module shift8 (
-    input clk,  // clock
-    input rst,  // reset
     input alufn10[2],
     input a[8],
     input b[8],
