@@ -20,26 +20,28 @@ module mojo_top (
   ) {
   
   sig rst;                  // reset signal
-  sig test_input[7];
-  sig check_zvn;
+  sig test_input[7];        // The 7 input buttons/switches to activate a test_case
+  sig check_zvn;            // Signal for tester to check if z,v and n are required for test.
+  
+  // Note: io_demo defaults for unused components are kept for future reference.
   
   .clk(clk) {
     // The reset conditioner is used to synchronize the reset signal to the FPGA
     // clock. This ensures the entire FPGA comes out of reset at the same time.
     reset_conditioner reset_cond;
     
-    //edge_detector edge_detector (#RISE(1), #FALL(0));
+    //edge_detector edge_detector (#RISE(1), #FALL(0)); // From io_demo default
     
     .rst(rst) {
-      //multi_seven_seg seg;
+      //multi_seven_seg seg; // From io_demo default
       //multi_dec_ctr dec_ctr;
       //counter ctr (#SIZE(1), #DIV(24));
       
       alu alu;
-      fsm state = {INITIAL,TESTING,END};
-      dff test_case[$clog2(7)];
-      dff index[$clog2(24)];
-      dff led_mem[3][8];
+      fsm state = {INITIAL,TESTING,END}; // Current testing state.
+      dff test_case[$clog2(7)];          // Which test_case is running, $clog2(7) = 3.
+      dff index[$clog2(24)];             // index of the test in currest test_case, $clog2(24)=5.
+      dff led_mem[3][8];                 // Memory for io_led, so that its state is persisted
     }
   }
   
@@ -59,30 +61,31 @@ module mojo_top (
     spi_channel = bzzzz;      // not using flags
     avr_rx = bz;              // not using serial port
     
-    //edge_detector.in = ctr.value;    // From io_demo default
+    //edge_detector.in = ctr.value;     // From io_demo default
     //dec_ctr.inc = edge_detector.out;
     //seg.values = dec_ctr.digits;
-    seg.char = test_case.q; // Connect test case to 7segment display
-    io_seg = ~seg.segs; // seg module converts from number to 7segment display value.
-    io_sel = ~4b0000; // Don't display anything on 7segment yet.
     
-    io_led = led_mem.q; // io_led are driven by the led dff.
+    seg.char = test_case.q;   // Connect test case to 7segment display
+    io_seg = ~seg.segs;       // seg module converts from number to 7segment display value.
+    io_sel = ~4b0000;         // Don't display anything on 7segment yet.
+    
+    io_led = led_mem.q;       // io_led are driven by the led memory.
     // END: Fixed signals
     
     
     // START: defaults
-    alu.alufn = io_dip[2][5:0];
+    alu.alufn = io_dip[2][5:0];   // Connect dip switches to alu inputs.
     alu.a = io_dip[0];
     alu.b = io_dip[1];
-    led = 8b0; //c{3b0, io_button};  // connect buttons to LEDs
+    led = 8b0;                    // Show z,v,n outputs on the side led.
     led[0] = alu.z;
     led[1] = alu.v;
     led[2] = alu.n;
     
-    led_mem.d[1:0] = io_dip[1:0]; // show switch inputs.
-    led_mem.d[2] = alu.out; // show alu
+    led_mem.d[1:0] = io_dip[1:0]; // In normal operation, show switch inputs.
+    led_mem.d[2] = alu.out;       // In normal operation, show alu inputs.
     
-    test_rom.test_case = 3b111; // 111 is unused.
+    test_rom.test_case = 3b111;   // default values for unused test_rom.
     test_rom.index = 5b0;
     check_zvn = 0;
     //END: defaults
@@ -90,33 +93,33 @@ module mojo_top (
     
     // START: Testing circuit
     test_input = c{io_dip[2][7:6], io_button}; // Array of button/switch inputs to activate test cases.
-    test_number.in = test_input; // which button was pressed.
+    test_number.in = test_input;               // Map input to a number.
     
     case(state.q){
       state.INITIAL:
-        if (|test_input){ // A test case has been activated. Initialise.
+        if (|test_input){                      // A test case has been activated. Initialise.
           test_case.d = test_number.out;
           index.d = 5b0;
-          led_mem.d = {8b0,8b0,8b0}; // reset led
+          led_mem.d = {8b0,8b0,8b0};           // reset led
           state.d = state.TESTING;
         }
       state.TESTING:
-        io_sel = ~4b0001; // Display testcase on first digit of 7segment display.
-        test_rom.test_case = test_case.q;
+        io_sel = ~4b0001;                      // Display testcase on first digit of 7segment display.
+        test_rom.test_case = test_case.q;      // Send test_case and index to rom to select a specific test.
         test_rom.index = index.q;
-        // Corrupted alu will use dip switches for a,b and alufn
+        // Corrupted alu will use default dip switches for a,b and alufn, allowing corruption of inputs.
         if (!corrupt[0]){ alu.alufn = test_rom.alufn; }
         if (!corrupt[1]){ alu.a = test_rom.a; }
         if (!corrupt[2]){ alu.b = test_rom.b; }
-        led_mem.d = led_mem.q;
+        led_mem.d = led_mem.q;                 // Maintain led values.
         check_zvn = test_rom.alufn[5:1] == 5b00000 || test_rom.alufn[5:3] == 3b110;
         if (alu.out == test_rom.out && 
             ((alu.z == test_rom.z &&
               alu.v == test_rom.v &&
               alu.n == test_rom.n) || 
              check_zvn == 0)
-           ){ // test_index successful, light up led.
-          if (index.q<8){
+           ){                                  // test_index successful, light up led.
+          if (index.q<8){                      // Need to select correct led in 2dimensional array
             led_mem.d[0][index.q] = 1;
           } else if (8<=index.q && index.q<16){
             led_mem.d[1][index.q-8] = 1;
@@ -124,14 +127,15 @@ module mojo_top (
             led_mem.d[2][index.q-16] = 1;
           }
         }
-        index.d = index.q+1;
-        if (index.q==24){
+        index.d = index.q+1;                   // Increment the index.
+        if (index.q==24){                      // If current index is at the end of the test, end.
           state.d = state.END;
         }
       state.END:
-        io_sel = ~4b0001; // Display testcase on first digit of 7segment display.
-        led_mem.d = led_mem.q; // Keep led values same.
-        led[7]=1;
+        io_sel = ~4b0001;                      // Display testcase on first digit of 7segment display.
+        led_mem.d = led_mem.q;                 // Keep led values same.
+        led[7]=1;                              // To show that mojo is in testing mode. Press reset button to exit.
+        
     }
     // END: Testing circuit
     
