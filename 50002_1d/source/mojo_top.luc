@@ -28,12 +28,12 @@ module mojo_top (
     // clock. This ensures the entire FPGA comes out of reset at the same time.
     reset_conditioner reset_cond;
     
-    edge_detector edge_detector (#RISE(1), #FALL(0));
+    //edge_detector edge_detector (#RISE(1), #FALL(0));
     
     .rst(rst) {
-      multi_seven_seg seg;
-      multi_dec_ctr dec_ctr;
-      counter ctr (#SIZE(1), #DIV(24));
+      //multi_seven_seg seg;
+      //multi_dec_ctr dec_ctr;
+      //counter ctr (#SIZE(1), #DIV(24));
       
       alu alu;
       fsm state = {INITIAL,TESTING,END};
@@ -43,6 +43,7 @@ module mojo_top (
     }
   }
   
+  seven_seg seg;
   encoder test_number (#WIDTH(7));
   test_rom test_rom;
   
@@ -58,11 +59,12 @@ module mojo_top (
     spi_channel = bzzzz;      // not using flags
     avr_rx = bz;              // not using serial port
     
-    edge_detector.in = ctr.value;
-    dec_ctr.inc = edge_detector.out;
-    seg.values = dec_ctr.digits;
-    io_seg = ~seg.seg; // connect segments to the driver
-    io_sel = ~seg.sel; // connect digit select to the driver
+    //edge_detector.in = ctr.value;    // From io_demo default
+    //dec_ctr.inc = edge_detector.out;
+    //seg.values = dec_ctr.digits;
+    seg.char = test_case.q; // Connect test case to 7segment display
+    io_seg = ~seg.segs; // seg module converts from number to 7segment display value.
+    io_sel = ~4b0000; // Don't display anything on 7segment yet.
     
     io_led = led_mem.q; // io_led are driven by the led dff.
     // END: Fixed signals
@@ -92,13 +94,14 @@ module mojo_top (
     
     case(state.q){
       state.INITIAL:
-        if (|test_input){ // A test case has been activated.
+        if (|test_input){ // A test case has been activated. Initialise.
           test_case.d = test_number.out;
           index.d = 5b0;
-          led_mem.d = {8b0,8b0,8b0};
+          led_mem.d = {8b0,8b0,8b0}; // reset led
           state.d = state.TESTING;
         }
       state.TESTING:
+        io_sel = ~4b0001; // Display testcase on first digit of 7segment display.
         test_rom.test_case = test_case.q;
         test_rom.index = index.q;
         // Corrupted alu will use dip switches for a,b and alufn
@@ -126,8 +129,9 @@ module mojo_top (
           state.d = state.END;
         }
       state.END:
+        io_sel = ~4b0001; // Display testcase on first digit of 7segment display.
         led_mem.d = led_mem.q; // Keep led values same.
-        led[7]=1;        
+        led[7]=1;
     }
     // END: Testing circuit
     
