@@ -12,13 +12,14 @@ module mojo_top (
     output avr_rx,          // AVR RX (FPGA TX)
     input avr_rx_busy,      // AVR RX buffer full
     output io_led [3][8],   // LEDs on IO Shield
-    output io_seg [8],      // 7-segment LEDs on IO Shield
+    output io_seg [8],      // 7-segment LEDs on IO Shield 
     output io_sel [4],      // Digit select on IO Shield
-    input io_button [5],    // 5 buttons on IO Shield
+    input io_button [5],    // 5 buttons on IO Shield, order 0-4: up, mid, down, left, right.
     input io_dip [3][8]     // DIP switches on IO Shield
   ) {
   
   sig rst;                  // reset signal
+  sig test_input[7];
   
   .clk(clk) {
     // The reset conditioner is used to synchronize the reset signal to the FPGA
@@ -31,15 +32,26 @@ module mojo_top (
       multi_seven_seg seg;
       multi_dec_ctr dec_ctr;
       counter ctr (#SIZE(1), #DIV(24));
+      
       alu alu;
+      fsm state = {INITIAL,TESTING,END};
+      dff test_case[$clog2(7)];
+      dff index[$clog2(24)];
+      dff led_mem[3][8];
     }
   }
   
+  encoder test_number (#WIDTH(7));
+  test_rom test_rom;
+  
+
+  
   always {
+    
+    // START: Fixed signals
     reset_cond.in = ~rst_n;   // input raw inverted reset signal
     rst = reset_cond.out;     // conditioned reset
     
-    led = c{3b0, io_button};  // connect buttons to LEDs
     spi_miso = bz;            // not using SPI
     spi_channel = bzzzz;      // not using flags
     avr_rx = bz;              // not using serial port
@@ -47,21 +59,73 @@ module mojo_top (
     edge_detector.in = ctr.value;
     dec_ctr.inc = edge_detector.out;
     seg.values = dec_ctr.digits;
-    
     io_seg = ~seg.seg; // connect segments to the driver
     io_sel = ~seg.sel; // connect digit select to the driver
     
-    io_led = io_dip;   // connect the DIP switches to the LEDs
+    io_led = led_mem.q; // io_led are driven by the led dff.
+    // END: Fixed signals
+    
+    
+    // START: defaults
+    alu.alufn = io_dip[2][5:0];
     alu.a = io_dip[0];
     alu.b = io_dip[1];
-    alu.alufn = io_dip[2][5:0];
-    io_led[0] = io_dip[0];
-    io_led[1] = io_dip[1];
-    io_led[2] = alu.out;
-    
+    led = 8b0; //c{3b0, io_button};  // connect buttons to LEDs
     led[0] = alu.z;
     led[1] = alu.v;
     led[2] = alu.n;
-    led[7] = 1; // To test that it is on.
-  }    
+    
+    led_mem.d[1:0] = io_dip[1:0]; // show switch inputs.
+    led_mem.d[2] = alu.out; // show alu
+    
+    test_rom.test_case = 3b111; // 111 is unused.
+    test_rom.index = 5b0;
+    
+    //END: defaults
+    
+    
+    // START: Testing circuit
+    test_input = c{io_dip[2][7:6], io_button}; // Array of button/switch inputs to activate test cases.
+    test_number.in = test_input; // which button was pressed.
+    
+    case(state.q){
+      state.INITIAL:
+        if (|test_input){ // A test case has been activated.
+          test_case.d = test_number.out;
+          index.d = 5b0;
+          led_mem.d = {8b0,8b0,8b0};
+          led[7]=1;
+          state.d = state.TESTING;
+        }
+      state.TESTING:
+        test_rom.test_case = test_case.q;
+        test_rom.index = index.q;
+        alu.alufn = test_rom.alufn;
+        alu.a = test_rom.a;
+        alu.b = test_rom.b;
+        led_mem.d = led_mem.q;
+        if (alu.out == test_rom.out && 
+            alu.z == test_rom.z &&
+            alu.v == test_rom.v &&
+            alu.n == test_rom.n
+           ){ // test_index successful, light up led.
+          if (index.q<8){
+            led_mem.d[0][index.q] = 1;
+          } else if (8<=index.q && index.q<16){
+            led_mem.d[1][index.q-8] = 1;
+          } else {
+            led_mem.d[2][index.q-16] = 1;
+          }
+        }
+        index.d = index.q+1;
+        if (index.q==24){
+          state.d = state.END;
+        }
+      state.END:
+        led_mem.d = led_mem.q; // Keep led values same.
+        led[7]=1;
+    }
+    // END: Testing circuit
+    
+  }
 }

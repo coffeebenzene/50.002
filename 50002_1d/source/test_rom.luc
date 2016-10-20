@@ -1,0 +1,49 @@
+module test_rom (
+    input test_case[$clog2(7)], // $clog2(7) = 3
+    input index[$clog2(24)], // $clog2(24) = 5
+    output alufn[6],
+    output a[8],
+    output b[8],
+    output out[8],
+    output z,
+    output v,
+    output n
+  ) {
+
+  always {
+    case(c{test_case,index}){
+      8b00000000: //test_case0, index0
+        alufn = 6b000000;
+        a=8b00000001;
+        b=8b00000000;
+        out=8b00000000;
+        z=1;
+        v=0;
+        n=0;
+      8b00000001: //test_case0, index0
+        alufn = 6b000001;
+        a=8b00000001;
+        b=8b10000000;
+        out=8b00000000;
+        z=1;
+        v=0;
+        n=0;
+      8b00000011: //test_case0, index0
+        alufn = 6b000001;
+        a=8b00000001;
+        b=8b10000000;
+        out=8b10000001;
+        z=0;
+        v=1;
+        n=1;
+      default:
+        alufn = 6b000000;
+        a=8b00000000;
+        b=8b00000000;
+        out=8b00000000;
+        z=1;
+        v=0;
+        n=0;
+    }
+  }
+}
