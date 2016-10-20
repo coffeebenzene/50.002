@@ -1,0 +1,27 @@
+module test (
+    input clk, //clock
+    input rst, //reset
+    input test_case,
+    output a[8],
+    output b[8],
+    output alufn[6],
+    output expected_z,
+    output expected_v,
+    output expected_n,
+    output expected_out[8],
+  ) {
+  
+  sig TEST_CASES[10][7][8];
+  TEST_CASE[0] = [8b00101001,8b01000010,8b0,8b0,8b0,8b0,8b01101011]
+
+  always {
+    a = TEST_CASE[test_case][6]
+    b = TEST_CASE[test_case][5]
+    alufn = TEST_CASE[test_case][4][5:0]
+    expected_z = TEST_CASE[test_case][3][0]
+    expected_v = TEST_CASE[test_case][2][0]
+    expected_n = TEST_CASE[test_case][1][0]
+    expected_out = TEST_CASE[test_case][0]
+  }
+
+}
