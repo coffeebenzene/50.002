@@ -214,10 +214,10 @@ module test_rom (
         z = 0;
         v = 0;
         n = 1;
-        
-        
+
+
       // compare
-      8b00100000: //test_case 1, index 0
+      8b00100000: //test_case 1, index 0, cmpeq
         alufn = 6b110011;
         a = 8b00101001;
         b = 8b10111110;
@@ -225,7 +225,7 @@ module test_rom (
         z = 0;
         v = 0;
         n = 0;
-      8b00100001: //test_case 1, index 1
+      8b00100001: //test_case 1, index 1, cmpeq
         alufn = 6b110011;
         a = 8b11111111;
         b = 8b00000001;
@@ -233,7 +233,7 @@ module test_rom (
         z = 0;
         v = 0;
         n = 1;
-      8b00100010: //test_case 1, index 2
+      8b00100010: //test_case 1, index 2, cmpeq
         alufn = 6b110011;
         a = 8b10000000;
         b = 8b00000001;
@@ -241,7 +241,7 @@ module test_rom (
         z = 0;
         v = 1;
         n = 0;
-      8b00100011: //test_case 1, index 3
+      8b00100011: //test_case 1, index 3, cmpeq
         alufn = 6b110011;
         a = 8b01111111;
         b = 8b11111111;
@@ -249,7 +249,7 @@ module test_rom (
         z = 0;
         v = 1;
         n = 1;
-      8b00100100: //test_case 1, index 4
+      8b00100100: //test_case 1, index 4, cmpeq
         alufn = 6b110011;
         a = 8b00000001;
         b = 8b00000001;
@@ -257,7 +257,7 @@ module test_rom (
         z = 1;
         v = 0;
         n = 0;
-      8b00100101: //test_case 1, index 5
+      8b00100101: //test_case 1, index 5, cmpeq
         alufn = 6b110011;
         a = 8b10000000;
         b = 8b10000000;
@@ -265,7 +265,7 @@ module test_rom (
         z = 1;
         v = 0;
         n = 0;
-      8b00100110: //test_case 1, index 6
+      8b00100110: //test_case 1, index 6, cmplt
         alufn = 6b110101;
         a = 8b00101001;
         b = 8b10111110;
@@ -273,7 +273,7 @@ module test_rom (
         z = 0;
         v = 0;
         n = 0;
-      8b00100111: //test_case 1, index 7
+      8b00100111: //test_case 1, index 7, cmplt
         alufn = 6b110101;
         a = 8b11111111;
         b = 8b00000001;
@@ -281,7 +281,7 @@ module test_rom (
         z = 0;
         v = 0;
         n = 1;
-      8b00101000: //test_case 1, index 8
+      8b00101000: //test_case 1, index 8, cmplt
         alufn = 6b110101;
         a = 8b10000000;
         b = 8b00000001;
@@ -289,7 +289,7 @@ module test_rom (
         z = 0;
         v = 1;
         n = 0;
-      8b00101001: //test_case 1, index 9
+      8b00101001: //test_case 1, index 9, cmplt
         alufn = 6b110101;
         a = 8b01111111;
         b = 8b11111111;
@@ -297,7 +297,7 @@ module test_rom (
         z = 0;
         v = 1;
         n = 1;
-      8b00101010: //test_case 1, index 10
+      8b00101010: //test_case 1, index 10, cmplt
         alufn = 6b110101;
         a = 8b00000001;
         b = 8b00000001;
@@ -305,7 +305,7 @@ module test_rom (
         z = 1;
         v = 0;
         n = 0;
-      8b00101011: //test_case 1, index 11
+      8b00101011: //test_case 1, index 11, cmplt
         alufn = 6b110101;
         a = 8b10000000;
         b = 8b10000000;
@@ -313,7 +313,7 @@ module test_rom (
         z = 1;
         v = 0;
         n = 0;
-      8b00101100: //test_case 1, index 12
+      8b00101100: //test_case 1, index 12, cmple
         alufn = 6b110111;
         a = 8b00101001;
         b = 8b10111110;
@@ -321,7 +321,7 @@ module test_rom (
         z = 0;
         v = 0;
         n = 0;
-      8b00101101: //test_case 1, index 13
+      8b00101101: //test_case 1, index 13, cmple
         alufn = 6b110111;
         a = 8b11111111;
         b = 8b00000001;
@@ -329,7 +329,7 @@ module test_rom (
         z = 0;
         v = 0;
         n = 1;
-      8b00101110: //test_case 1, index 14
+      8b00101110: //test_case 1, index 14, cmple
         alufn = 6b110111;
         a = 8b10000000;
         b = 8b00000001;
@@ -337,7 +337,7 @@ module test_rom (
         z = 0;
         v = 1;
         n = 0;
-      8b00101111: //test_case 1, index 15
+      8b00101111: //test_case 1, index 15, cmple
         alufn = 6b110111;
         a = 8b01111111;
         b = 8b11111111;
@@ -345,7 +345,7 @@ module test_rom (
         z = 0;
         v = 1;
         n = 1;
-      8b00110000: //test_case 1, index 16
+      8b00110000: //test_case 1, index 16, cmple
         alufn = 6b110111;
         a = 8b00000001;
         b = 8b00000001;
@@ -353,7 +353,7 @@ module test_rom (
         z = 1;
         v = 0;
         n = 0;
-      8b00110001: //test_case 1, index 17
+      8b00110001: //test_case 1, index 17, cmple
         alufn = 6b110111;
         a = 8b10000000;
         b = 8b10000000;
@@ -361,10 +361,10 @@ module test_rom (
         z = 1;
         v = 0;
         n = 0;
-      
-      
+
+
       // boolean
-      8b01000000: //test_case 2, index 0
+      8b01000000: //test_case 2, index 0, const 0
         alufn = 6b010000;
         a = 8b10101010;
         b = 8b11001100;
@@ -372,7 +372,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b01000001: //test_case 2, index 1
+      8b01000001: //test_case 2, index 1, NOR
         alufn = 6b010001;
         a = 8b10101010;
         b = 8b11001100;
@@ -380,7 +380,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b01000010: //test_case 2, index 2
+      8b01000010: //test_case 2, index 2, Xa
         alufn = 6b010010;
         a = 8b10101010;
         b = 8b11001100;
@@ -388,7 +388,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b01000011: //test_case 2, index 3
+      8b01000011: //test_case 2, index 3, NOT b
         alufn = 6b010011;
         a = 8b10101010;
         b = 8b11001100;
@@ -396,7 +396,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b01000100: //test_case 2, index 4
+      8b01000100: //test_case 2, index 4, Xb
         alufn = 6b010100;
         a = 8b10101010;
         b = 8b11001100;
@@ -404,7 +404,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b01000101: //test_case 2, index 5
+      8b01000101: //test_case 2, index 5, NOT a
         alufn = 6b010101;
         a = 8b10101010;
         b = 8b11001100;
@@ -412,7 +412,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b01000110: //test_case 2, index 6
+      8b01000110: //test_case 2, index 6, THEN/IF
         alufn = 6b010111;
         a = 8b10101010;
         b = 8b11001100;
@@ -420,7 +420,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b01000111: //test_case 2, index 7
+      8b01000111: //test_case 2, index 7, AND
         alufn = 6b011000;
         a = 8b10101010;
         b = 8b11001100;
@@ -428,7 +428,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b01001000: //test_case 2, index 8
+      8b01001000: //test_case 2, index 8, XNOR
         alufn = 6b011001;
         a = 8b10101010;
         b = 8b11001100;
@@ -436,7 +436,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b01001001: //test_case 2, index 9
+      8b01001001: //test_case 2, index 9, a
         alufn = 6b011010;
         a = 8b10101010;
         b = 8b11001100;
@@ -444,7 +444,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b01001010: //test_case 2, index 10
+      8b01001010: //test_case 2, index 10, THEN/IF
         alufn = 6b011011;
         a = 8b10101010;
         b = 8b11001100;
@@ -452,7 +452,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b01001011: //test_case 2, index 11
+      8b01001011: //test_case 2, index 11, b
         alufn = 6b011100;
         a = 8b10101010;
         b = 8b11001100;
@@ -460,7 +460,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b01001100: //test_case 2, index 12
+      8b01001100: //test_case 2, index 12, IF/THEN
         alufn = 6b011101;
         a = 8b10101010;
         b = 8b11001100;
@@ -468,7 +468,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b01001101: //test_case 2, index 13
+      8b01001101: //test_case 2, index 13, OR
         alufn = 6b011110;
         a = 8b10101010;
         b = 8b11001100;
@@ -476,7 +476,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b01001110: //test_case 2, index 14
+      8b01001110: //test_case 2, index 14, const -1
         alufn = 6b011111;
         a = 8b10101010;
         b = 8b11001100;
@@ -484,7 +484,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b01001111: //test_case 2, index 15
+      8b01001111: //test_case 2, index 15, AND
         alufn = 6b011000;
         a = 8b10100011;
         b = 8b10110111;
@@ -492,7 +492,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b01010000: //test_case 2, index 16
+      8b01010000: //test_case 2, index 16, OR
         alufn = 6b011110;
         a = 8b11100110;
         b = 8b10101100;
@@ -500,7 +500,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b01010001: //test_case 2, index 17
+      8b01010001: //test_case 2, index 17, XOR
         alufn = 6b010110;
         a = 8b00000101;
         b = 8b11111101;
@@ -508,7 +508,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b01010010: //test_case 2, index 18
+      8b01010010: //test_case 2, index 18, a
         alufn = 6b011010;
         a = 8b10000000;
         b = 8b01001001;
@@ -516,7 +516,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b01010011: //test_case 2, index 19
+      8b01010011: //test_case 2, index 19, NOT b
         alufn = 6b010011;
         a = 8b11100011;
         b = 8b00010010;
@@ -524,7 +524,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b01010100: //test_case 2, index 20
+      8b01010100: //test_case 2, index 20, NOR
         alufn = 6b010001;
         a = 8b00111110;
         b = 8b01000100;
@@ -532,7 +532,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b01010101: //test_case 2, index 21
+      8b01010101: //test_case 2, index 21, Xa
         alufn = 6b010010;
         a = 8b01111111;
         b = 8b01101100;
@@ -540,7 +540,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b01010110: //test_case 2, index 22
+      8b01010110: //test_case 2, index 22, NOT a
         alufn = 6b010101;
         a = 8b10110100;
         b = 8b10010000;
@@ -548,7 +548,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b01010111: //test_case 2, index 23
+      8b01010111: //test_case 2, index 23, Xb
         alufn = 6b010100;
         a = 8b10111010;
         b = 8b01100110;
@@ -556,10 +556,10 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      
-      
+
+
       //  shift left
-      8b01100000: //test_case 3, index 0
+      8b01100000: //test_case 3, index 0, 0 bit
         alufn = 6b100000;
         a = 8b00000000;
         b = 8b00000000;
@@ -567,7 +567,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b01100001: //test_case 3, index 1
+      8b01100001: //test_case 3, index 1, 1 bit
         alufn = 6b100000;
         a = 8b00000000;
         b = 8b00000001;
@@ -575,7 +575,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b01100010: //test_case 3, index 2
+      8b01100010: //test_case 3, index 2, 2 bit
         alufn = 6b100000;
         a = 8b00000000;
         b = 8b00000010;
@@ -583,7 +583,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b01100011: //test_case 3, index 3
+      8b01100011: //test_case 3, index 3, 4 bit
         alufn = 6b100000;
         a = 8b00000000;
         b = 8b00000100;
@@ -591,7 +591,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b01100100: //test_case 3, index 4
+      8b01100100: //test_case 3, index 4, 0 bit
         alufn = 6b100000;
         a = 8b11111111;
         b = 8b00000000;
@@ -599,7 +599,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b01100101: //test_case 3, index 5
+      8b01100101: //test_case 3, index 5, 1 bit
         alufn = 6b100000;
         a = 8b11111111;
         b = 8b00000001;
@@ -607,7 +607,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b01100110: //test_case 3, index 6
+      8b01100110: //test_case 3, index 6, 2 bit
         alufn = 6b100000;
         a = 8b11111111;
         b = 8b00000010;
@@ -615,7 +615,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b01100111: //test_case 3, index 7
+      8b01100111: //test_case 3, index 7, 4 bit
         alufn = 6b100000;
         a = 8b11111111;
         b = 8b00000100;
@@ -623,7 +623,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b01101000: //test_case 3, index 8
+      8b01101000: //test_case 3, index 8, 0 bit
         alufn = 6b100000;
         a = 8b10000000;
         b = 8b00000000;
@@ -631,7 +631,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b01101001: //test_case 3, index 9
+      8b01101001: //test_case 3, index 9, 1 bit
         alufn = 6b100000;
         a = 8b10000000;
         b = 8b00000001;
@@ -639,7 +639,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b01101010: //test_case 3, index 10
+      8b01101010: //test_case 3, index 10, 2 bit
         alufn = 6b100000;
         a = 8b10000000;
         b = 8b00000010;
@@ -647,7 +647,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b01101011: //test_case 3, index 11
+      8b01101011: //test_case 3, index 11, 4 bit
         alufn = 6b100000;
         a = 8b10000000;
         b = 8b00000100;
@@ -655,7 +655,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b01101100: //test_case 3, index 12
+      8b01101100: //test_case 3, index 12, 0 bit
         alufn = 6b100000;
         a = 8b01111111;
         b = 8b00000000;
@@ -663,7 +663,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b01101101: //test_case 3, index 13
+      8b01101101: //test_case 3, index 13, 1 bit
         alufn = 6b100000;
         a = 8b01111111;
         b = 8b00000001;
@@ -671,7 +671,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b01101110: //test_case 3, index 14
+      8b01101110: //test_case 3, index 14, 2 bit
         alufn = 6b100000;
         a = 8b01111111;
         b = 8b00000010;
@@ -679,7 +679,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b01101111: //test_case 3, index 15
+      8b01101111: //test_case 3, index 15, 4 bit
         alufn = 6b100000;
         a = 8b01111111;
         b = 8b00000100;
@@ -687,7 +687,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b01110000: //test_case 3, index 16
+      8b01110000: //test_case 3, index 16, 0 bit
         alufn = 6b100000;
         a = 8b11001111;
         b = 8b00000000;
@@ -695,7 +695,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b01110001: //test_case 3, index 17
+      8b01110001: //test_case 3, index 17, 1 bit
         alufn = 6b100000;
         a = 8b11001111;
         b = 8b00000001;
@@ -703,7 +703,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b01110010: //test_case 3, index 18
+      8b01110010: //test_case 3, index 18, 3 bit
         alufn = 6b100000;
         a = 8b11001111;
         b = 8b00000011;
@@ -711,7 +711,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b01110011: //test_case 3, index 19
+      8b01110011: //test_case 3, index 19, 7 bit
         alufn = 6b100000;
         a = 8b11001111;
         b = 8b00000111;
@@ -719,7 +719,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b01110100: //test_case 3, index 20
+      8b01110100: //test_case 3, index 20, 0 bit
         alufn = 6b100000;
         a = 8b01110100;
         b = 8b00000000;
@@ -727,7 +727,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b01110101: //test_case 3, index 21
+      8b01110101: //test_case 3, index 21, 1 bit
         alufn = 6b100000;
         a = 8b01110100;
         b = 8b00000001;
@@ -735,7 +735,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b01110110: //test_case 3, index 22
+      8b01110110: //test_case 3, index 22, 3 bit
         alufn = 6b100000;
         a = 8b01110100;
         b = 8b00000011;
@@ -743,7 +743,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b01110111: //test_case 3, index 23
+      8b01110111: //test_case 3, index 23, 7 bit
         alufn = 6b100000;
         a = 8b01110100;
         b = 8b00000111;
@@ -751,10 +751,10 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      
-      
+
+
       //  shift right
-      8b10000000: //test_case 4, index 0
+      8b10000000: //test_case 4, index 0, 0 bit
         alufn = 6b100001;
         a = 8b00000000;
         b = 8b00000000;
@@ -762,7 +762,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b10000001: //test_case 4, index 1
+      8b10000001: //test_case 4, index 1, 1 bit
         alufn = 6b100001;
         a = 8b00000000;
         b = 8b00000001;
@@ -770,7 +770,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b10000010: //test_case 4, index 2
+      8b10000010: //test_case 4, index 2, 2 bit
         alufn = 6b100001;
         a = 8b00000000;
         b = 8b00000010;
@@ -778,7 +778,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b10000011: //test_case 4, index 3
+      8b10000011: //test_case 4, index 3, 4 bit
         alufn = 6b100001;
         a = 8b00000000;
         b = 8b00000100;
@@ -786,7 +786,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b10000100: //test_case 4, index 4
+      8b10000100: //test_case 4, index 4, 0 bit
         alufn = 6b100001;
         a = 8b11111111;
         b = 8b00000000;
@@ -794,7 +794,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b10000101: //test_case 4, index 5
+      8b10000101: //test_case 4, index 5, 1 bit
         alufn = 6b100001;
         a = 8b11111111;
         b = 8b00000001;
@@ -802,7 +802,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b10000110: //test_case 4, index 6
+      8b10000110: //test_case 4, index 6, 2 bit
         alufn = 6b100001;
         a = 8b11111111;
         b = 8b00000010;
@@ -810,7 +810,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b10000111: //test_case 4, index 7
+      8b10000111: //test_case 4, index 7, 4 bit
         alufn = 6b100001;
         a = 8b11111111;
         b = 8b00000100;
@@ -818,7 +818,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b10001000: //test_case 4, index 8
+      8b10001000: //test_case 4, index 8, 0 bit
         alufn = 6b100001;
         a = 8b10000000;
         b = 8b00000000;
@@ -826,7 +826,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b10001001: //test_case 4, index 9
+      8b10001001: //test_case 4, index 9, 1 bit
         alufn = 6b100001;
         a = 8b10000000;
         b = 8b00000001;
@@ -834,7 +834,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b10001010: //test_case 4, index 10
+      8b10001010: //test_case 4, index 10, 2 bit
         alufn = 6b100001;
         a = 8b10000000;
         b = 8b00000010;
@@ -842,7 +842,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b10001011: //test_case 4, index 11
+      8b10001011: //test_case 4, index 11, 4 bit
         alufn = 6b100001;
         a = 8b10000000;
         b = 8b00000100;
@@ -850,7 +850,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b10001100: //test_case 4, index 12
+      8b10001100: //test_case 4, index 12, 0 bit
         alufn = 6b100001;
         a = 8b01111111;
         b = 8b00000000;
@@ -858,7 +858,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b10001101: //test_case 4, index 13
+      8b10001101: //test_case 4, index 13, 1 bit
         alufn = 6b100001;
         a = 8b01111111;
         b = 8b00000001;
@@ -866,7 +866,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b10001110: //test_case 4, index 14
+      8b10001110: //test_case 4, index 14, 2 bit
         alufn = 6b100001;
         a = 8b01111111;
         b = 8b00000010;
@@ -874,7 +874,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b10001111: //test_case 4, index 15
+      8b10001111: //test_case 4, index 15, 4 bit
         alufn = 6b100001;
         a = 8b01111111;
         b = 8b00000100;
@@ -882,7 +882,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b10010000: //test_case 4, index 16
+      8b10010000: //test_case 4, index 16, 0 bit
         alufn = 6b100001;
         a = 8b10100110;
         b = 8b00000000;
@@ -890,7 +890,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b10010001: //test_case 4, index 17
+      8b10010001: //test_case 4, index 17, 1 bit
         alufn = 6b100001;
         a = 8b10100110;
         b = 8b00000001;
@@ -898,7 +898,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b10010010: //test_case 4, index 18
+      8b10010010: //test_case 4, index 18, 3 bit
         alufn = 6b100001;
         a = 8b10100110;
         b = 8b00000011;
@@ -906,7 +906,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b10010011: //test_case 4, index 19
+      8b10010011: //test_case 4, index 19, 7 bit
         alufn = 6b100001;
         a = 8b10100110;
         b = 8b00000111;
@@ -914,7 +914,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b10010100: //test_case 4, index 20
+      8b10010100: //test_case 4, index 20, 0 bit
         alufn = 6b100001;
         a = 8b00010101;
         b = 8b00000000;
@@ -922,7 +922,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b10010101: //test_case 4, index 21
+      8b10010101: //test_case 4, index 21, 1 bit
         alufn = 6b100001;
         a = 8b00010101;
         b = 8b00000001;
@@ -930,7 +930,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b10010110: //test_case 4, index 22
+      8b10010110: //test_case 4, index 22, 3 bit
         alufn = 6b100001;
         a = 8b00010101;
         b = 8b00000011;
@@ -938,7 +938,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b10010111: //test_case 4, index 23
+      8b10010111: //test_case 4, index 23, 7 bit
         alufn = 6b100001;
         a = 8b00010101;
         b = 8b00000111;
@@ -946,10 +946,10 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      
-      
+
+
       // shift right signed (arithmetic)
-      8b10100000: //test_case 5, index 0
+      8b10100000: //test_case 5, index 0, 0 bit
         alufn = 6b100011;
         a = 8b00000000;
         b = 8b00000000;
@@ -957,7 +957,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b10100001: //test_case 5, index 1
+      8b10100001: //test_case 5, index 1, 1 bit
         alufn = 6b100011;
         a = 8b00000000;
         b = 8b00000001;
@@ -965,7 +965,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b10100010: //test_case 5, index 2
+      8b10100010: //test_case 5, index 2, 2 bit
         alufn = 6b100011;
         a = 8b00000000;
         b = 8b00000010;
@@ -973,7 +973,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b10100011: //test_case 5, index 3
+      8b10100011: //test_case 5, index 3, 4 bit
         alufn = 6b100011;
         a = 8b00000000;
         b = 8b00000100;
@@ -981,7 +981,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b10100100: //test_case 5, index 4
+      8b10100100: //test_case 5, index 4, 0 bit
         alufn = 6b100011;
         a = 8b11111111;
         b = 8b00000000;
@@ -989,7 +989,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b10100101: //test_case 5, index 5
+      8b10100101: //test_case 5, index 5, 1 bit
         alufn = 6b100011;
         a = 8b11111111;
         b = 8b00000001;
@@ -997,7 +997,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b10100110: //test_case 5, index 6
+      8b10100110: //test_case 5, index 6, 2 bit
         alufn = 6b100011;
         a = 8b11111111;
         b = 8b00000010;
@@ -1005,7 +1005,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b10100111: //test_case 5, index 7
+      8b10100111: //test_case 5, index 7, 4 bit
         alufn = 6b100011;
         a = 8b11111111;
         b = 8b00000100;
@@ -1013,7 +1013,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b10101000: //test_case 5, index 8
+      8b10101000: //test_case 5, index 8, 0 bit
         alufn = 6b100011;
         a = 8b10000000;
         b = 8b00000000;
@@ -1021,7 +1021,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b10101001: //test_case 5, index 9
+      8b10101001: //test_case 5, index 9, 1 bit
         alufn = 6b100011;
         a = 8b10000000;
         b = 8b00000001;
@@ -1029,7 +1029,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b10101010: //test_case 5, index 10
+      8b10101010: //test_case 5, index 10, 2 bit
         alufn = 6b100011;
         a = 8b10000000;
         b = 8b00000010;
@@ -1037,7 +1037,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b10101011: //test_case 5, index 11
+      8b10101011: //test_case 5, index 11, 4 bit
         alufn = 6b100011;
         a = 8b10000000;
         b = 8b00000100;
@@ -1045,7 +1045,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b10101100: //test_case 5, index 12
+      8b10101100: //test_case 5, index 12, 0 bit
         alufn = 6b100011;
         a = 8b01111111;
         b = 8b00000000;
@@ -1053,7 +1053,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b10101101: //test_case 5, index 13
+      8b10101101: //test_case 5, index 13, 1 bit
         alufn = 6b100011;
         a = 8b01111111;
         b = 8b00000001;
@@ -1061,7 +1061,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b10101110: //test_case 5, index 14
+      8b10101110: //test_case 5, index 14, 2 bit
         alufn = 6b100011;
         a = 8b01111111;
         b = 8b00000010;
@@ -1069,7 +1069,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b10101111: //test_case 5, index 15
+      8b10101111: //test_case 5, index 15, 4 bit
         alufn = 6b100011;
         a = 8b01111111;
         b = 8b00000100;
@@ -1077,7 +1077,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b10110000: //test_case 5, index 16
+      8b10110000: //test_case 5, index 16, 0 bit
         alufn = 6b100011;
         a = 8b11110100;
         b = 8b00000000;
@@ -1085,7 +1085,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b10110001: //test_case 5, index 17
+      8b10110001: //test_case 5, index 17, 1 bit
         alufn = 6b100011;
         a = 8b11110100;
         b = 8b00000001;
@@ -1093,7 +1093,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b10110010: //test_case 5, index 18
+      8b10110010: //test_case 5, index 18, 3 bit
         alufn = 6b100011;
         a = 8b11110100;
         b = 8b00000011;
@@ -1101,7 +1101,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b10110011: //test_case 5, index 19
+      8b10110011: //test_case 5, index 19, 7 bit
         alufn = 6b100011;
         a = 8b11110100;
         b = 8b00000111;
@@ -1109,7 +1109,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b10110100: //test_case 5, index 20
+      8b10110100: //test_case 5, index 20, 0 bit
         alufn = 6b100011;
         a = 8b00010101;
         b = 8b00000000;
@@ -1117,7 +1117,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b10110101: //test_case 5, index 21
+      8b10110101: //test_case 5, index 21, 1 bit
         alufn = 6b100011;
         a = 8b00010101;
         b = 8b00000001;
@@ -1125,7 +1125,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b10110110: //test_case 5, index 22
+      8b10110110: //test_case 5, index 22, 3 bit
         alufn = 6b100011;
         a = 8b00010101;
         b = 8b00000011;
@@ -1133,7 +1133,7 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      8b10110111: //test_case 5, index 23
+      8b10110111: //test_case 5, index 23, 7 bit
         alufn = 6b100011;
         a = 8b00010101;
         b = 8b00000111;
@@ -1141,8 +1141,8 @@ module test_rom (
         z = bx;
         v = bx;
         n = bx;
-      
-      
+
+
       // multiply
       8b11000000: //test_case 6, index 0
         alufn = 6b000010;
@@ -1329,7 +1329,7 @@ module test_rom (
         v = bx;
         n = bx;
 
-      
+
       default:
         alufn = 6b000000;
         a = 8b00000000;
