@@ -1,0 +1,22 @@
+module comparator8 (
+    input alufn21[2],
+    input z,
+    input v,
+    input n,
+    output out[8]
+  ) {
+  
+  always{
+    out[7:1] = 7b0000000;
+    case (alufn21) {
+      2b01:
+        out[0] = z;
+      2b10:
+        out[0] = n^v;
+      2b11:
+        out[0] = z | (n^v);
+      default:
+        out[0] = 0;
+    }
+  }
+}

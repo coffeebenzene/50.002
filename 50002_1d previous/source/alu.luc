@@ -1,0 +1,62 @@
+module alu (
+    input alufn[6],
+    input a[8],
+    input b[8],
+    output z,
+    output v,
+    output n,
+    output out[8]
+  ) {
+
+  adder8 adder;
+  comparator8 cmp;
+  boole8 bool;
+  shift8 shift;
+  multiply8 mult;
+  
+  
+  
+  always {
+    // Assign all inputs to the components.
+    adder.a = a;
+    adder.b = b;
+    adder.alufn0 = alufn[0];
+    
+    bool.a = a;
+    bool.b = b;
+    bool.alufn30 = alufn[3:0];
+    
+    shift.a = a;
+    shift.b = b;
+    shift.alufn10 = alufn[1:0];
+    
+    cmp.z = adder.z;
+    cmp.v = adder.v;
+    cmp.n = adder.n;
+    cmp.alufn21 = alufn[2:1];
+    
+    mult.a = a;
+    mult.b = b;
+    
+    // Selector mux for selecting which operation to do.
+    case (alufn[5:4]) {
+      2b00:
+        if (alufn[1] == 0){
+          out = adder.out;
+        } else {
+          out = mult.out;
+        }
+      2b01:
+        out = bool.out;
+      2b10:
+        out = shift.out;
+      2b11:
+        out = cmp.out;
+      default:
+        out = 8b00000000;
+    }
+    z = adder.z;
+    v = adder.v;
+    n = adder.n;
+  }
+}

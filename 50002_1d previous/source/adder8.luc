@@ -1,0 +1,31 @@
+module adder8 (
+    input alufn0,
+    input a[8],
+    input b[8],
+    output out[8],
+    output z,
+    output v,
+    output n
+  ) {
+
+  sig out_tmp[8];
+  sig carry;
+  sig xb[8];
+  
+  always {
+    if (alufn0) {
+      xb = ~b; // subtraction, negate b
+    } else {
+      xb = b;  // normal
+    }
+    
+    carry = alufn0;
+   
+    out_tmp = a + xb + carry;
+
+    out = out_tmp[7:0];
+    z = ~|out_tmp[7:0];
+    v = (a[7] & xb[7] & ~out_tmp[7]) | (~a[7] & ~xb[7] & out_tmp[7]);
+    n = out_tmp[7];
+  }
+}

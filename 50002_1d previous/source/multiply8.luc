@@ -1,0 +1,10 @@
+module multiply8 (
+    input a[8],
+    input b[8],
+    output out[8]
+  ) {
+
+  always {
+    out = a * b;
+  }
+}
