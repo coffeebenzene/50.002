@@ -16,14 +16,15 @@ module mojo_top (
     output io_sel [4],      // Digit select on IO Shield
     input io_button [5],    // 5 buttons on IO Shield, order 0-4: up, mid, down, left, right.
     input io_dip [3][8],    // DIP switches on IO Shield
-    input corrupt[3]        // Live wire in to corrupt alu - 0:alufn, 1:a, 2:b
+    output display_select[3][3], // 3x3 display selector to common anode. ACTIVE HIGH. output 1 for on.
+    output display_digit[7], // 7seg display digits to segment cathode. ACTIVE LOW. output 0 for on.
+    input arrow_btn[4],      // Arrow buttons. TODO: Will need to encode or prioritise or debounce etc.
+    input start_game         // Start/restart game button. TODO: debounce? Wire to reset??
   ) {
   
   sig rst;                  // reset signal
-  sig test_input[7];        // The 7 input buttons/switches to activate a test_case
-  sig check_zvn;            // Signal for tester to check if z,v and n are required for test.
   
-  // Note: io_demo defaults for unused components are kept for future reference.
+  // Note: io_demo defaults for unused components are kept for future reference. TODO: CHECK
   
   .clk(clk) {
     // The reset conditioner is used to synchronize the reset signal to the FPGA
@@ -37,19 +38,16 @@ module mojo_top (
       //multi_dec_ctr dec_ctr;
       //counter ctr (#SIZE(1), #DIV(24));
       
+      //dff game_state[3][3][4](#INIT(36hfffffffff)); // Dunno if this is correct. need to test.
+      dff game_state[3][3][4](#INIT(36h0123f5678)); // FOR TESTING. Should be (0,1,2)(3, ,5)(6,7,8)
       fsm state = {INITIAL,TESTING,END}; // Current testing state.
-      dff test_case[$clog2(7)];          // Which test_case is running, $clog2(7) = 3.
-      dff index[$clog2(24)];             // index of the test in currest test_case, $clog2(24)=5.
-      dff led_mem[3][8];                 // Memory for io_led, so that its state is persisted
+      
+      multiplex_display m_display;
     }
   }
   
-  seven_seg seg;
-  encoder test_number (#WIDTH(7));
   alu alu;
-  test_rom test_rom;
   
-
   
   always {
     
@@ -61,19 +59,18 @@ module mojo_top (
     spi_channel = bzzzz;      // not using flags
     avr_rx = bz;              // not using serial port
     
-    //edge_detector.in = ctr.value;     // From io_demo default
+    //edge_detector.in = ctr.value;     // From io_demo default TODO: CHECK
     //dec_ctr.inc = edge_detector.out;
     //seg.values = dec_ctr.digits;
     
-    seg.char = test_case.q;   // Connect test case to 7segment display
-    io_seg = ~seg.segs;       // seg module converts from number to 7segment display value.
+    //seg_map.char = test_case.q;   // Connect test case to 7segment display
+    io_seg = ~8b00000000;       // Display nothing.
     io_sel = ~4b0000;         // Don't display anything on 7segment yet.
     
-    io_led = led_mem.q;       // io_led are driven by the led memory.
+    io_led = {alu.out,8b0,8b0};       // Display only alu output
     // END: Fixed signals
     
-    
-    // START: defaults
+    // START: defaults TODO: TO BE REMOVED
     alu.alufn = io_dip[2][5:0];   // Connect dip switches to alu inputs.
     alu.a = io_dip[0];
     alu.b = io_dip[1];
@@ -81,63 +78,16 @@ module mojo_top (
     led[0] = alu.z;
     led[1] = alu.v;
     led[2] = alu.n;
-    
-    led_mem.d[1:0] = io_dip[1:0]; // In normal operation, show switch inputs.
-    led_mem.d[2] = alu.out;       // In normal operation, show alu inputs.
-    
-    test_rom.test_case = 3b111;   // default values for unused test_rom.
-    test_rom.index = 5b0;
-    check_zvn = 0;
     //END: defaults
     
+    // START: Display block
+    m_display.game_state = game_state.q;
+    display_select = m_display.display_select;
+    display_digit = m_display.display_digit;
+    // END: Display block
     
-    // START: Testing circuit
-    test_input = c{io_dip[2][7:6], io_button}; // Array of button/switch inputs to activate test cases.
-    test_number.in = test_input;               // Map input to a number.
+    //START: Game block
     
-    case(state.q){
-      state.INITIAL:
-        if (|test_input){                      // A test case has been activated. Initialise.
-          test_case.d = test_number.out;
-          index.d = 5b0;
-          led_mem.d = {8b0,8b0,8b0};           // reset led
-          state.d = state.TESTING;
-        }
-      state.TESTING:
-        io_sel = ~4b0001;                      // Display testcase on first digit of 7segment display.
-        test_rom.test_case = test_case.q;      // Send test_case and index to rom to select a specific test.
-        test_rom.index = index.q;
-        // Corrupted alu will use default dip switches for a,b and alufn, allowing corruption of inputs.
-        if (!corrupt[0]){ alu.alufn = test_rom.alufn; }
-        if (!corrupt[1]){ alu.a = test_rom.a; }
-        if (!corrupt[2]){ alu.b = test_rom.b; }
-        led_mem.d = led_mem.q;                 // Maintain led values.
-        check_zvn = test_rom.alufn[5:1] == 5b00000 || test_rom.alufn[5:3] == 3b110;
-        if (alu.out == test_rom.out && 
-            ((alu.z == test_rom.z &&
-              alu.v == test_rom.v &&
-              alu.n == test_rom.n) || 
-             check_zvn == 0)
-           ){                                  // test_index successful, light up led.
-          if (index.q<8){                      // Need to select correct led in 2dimensional array
-            led_mem.d[0][index.q] = 1;
-          } else if (8<=index.q && index.q<16){
-            led_mem.d[1][index.q-8] = 1;
-          } else {
-            led_mem.d[2][index.q-16] = 1;
-          }
-        }
-        index.d = index.q+1;                   // Increment the index.
-        if (index.q==24){                      // If current index is at the end of the test, end.
-          state.d = state.END;
-        }
-      state.END:
-        io_sel = ~4b0001;                      // Display testcase on first digit of 7segment display.
-        led_mem.d = led_mem.q;                 // Keep led values same.
-        led[7]=1;                              // To show that mojo is in testing mode. Press reset button to exit.
-        
-    }
-    // END: Testing circuit
-    
+    // END: Game block
   }
 }

@@ -1,0 +1,36 @@
+module multiplex_display (
+    input clk,  // clock
+    input rst,  // reset
+    input game_state[3][3][4], // 3x3 array of 4bit digits.
+    output display_select[3][3], // 3x3 display selector to common anode. ACTIVE HIGH. output 1 for on.
+    output display_digit[7] // 7seg display digits to segment cathode. ACTIVE LOW. output 0 for on.
+  ) {
+
+  .clk(clk), .rst(rst) {
+    dff row[2];
+    dff col[2];
+  }
+  
+  seven_seg seg_map;
+  
+  always {
+    
+    // row and col incrementer. Loops through by row first, then by col.
+    row.d = row.q + 1;
+    if (row.q == 2){ // if row/col is at 2, instead of incrementing, reset to 0.
+      row.d = 0;
+      
+      col.d = col.q + 1; // col increments only if row resets.
+      if (col.q == 2){
+        col.d = 0;
+      }
+    }
+    
+    display_select = {3b0,3b0,3b0}; // One hot display_select
+    display_select[row.q][col.q] = 1b1;
+    
+    seg_map.char = game_state[row.q][col.q]; // display digit.
+    display_digit = ~seg_map.segs[6:0]; // invert for active low.
+                                        // Takes only the bottom 7 bits. (decimal point not used.)
+  }
+}
