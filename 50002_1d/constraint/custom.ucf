@@ -1,3 +1,24 @@
-NET "corrupt<0>" LOC = P51 | IOSTANDARD = LVTTL | PULLDOWN;
-NET "corrupt<1>" LOC = P41 | IOSTANDARD = LVTTL | PULLDOWN;
-NET "corrupt<2>" LOC = P35 | IOSTANDARD = LVTTL | PULLDOWN;
+NET "display_select<0>" LOC = P51 | IOSTANDARD = LVTTL;
+NET "display_select<1>" LOC = P41 | IOSTANDARD = LVTTL;
+NET "display_select<2>" LOC = P35 | IOSTANDARD = LVTTL;
+NET "display_select<3>" LOC = P33 | IOSTANDARD = LVTTL;
+NET "display_select<4>" LOC = P30 | IOSTANDARD = LVTTL;
+NET "display_select<5>" LOC = P27 | IOSTANDARD = LVTTL;
+NET "display_select<6>" LOC = P24 | IOSTANDARD = LVTTL;
+NET "display_select<7>" LOC = P22 | IOSTANDARD = LVTTL;
+NET "display_select<8>" LOC = P17 | IOSTANDARD = LVTTL;
+
+NET "display_digit<0>" LOC = P50 | IOSTANDARD = LVTTL;
+NET "display_digit<1>" LOC = P40 | IOSTANDARD = LVTTL;
+NET "display_digit<2>" LOC = P34 | IOSTANDARD = LVTTL;
+NET "display_digit<3>" LOC = P32 | IOSTANDARD = LVTTL;
+NET "display_digit<4>" LOC = P29 | IOSTANDARD = LVTTL;
+NET "display_digit<5>" LOC = P26 | IOSTANDARD = LVTTL;
+NET "display_digit<6>" LOC = P23 | IOSTANDARD = LVTTL;
+
+NET "arrow_btn<0>"  LOC = P58 | IOSTANDARD = LVTTL | PULLDOWN;
+NET "arrow_btn<1>"  LOC = P67 | IOSTANDARD = LVTTL | PULLDOWN;
+NET "arrow_btn<2>"  LOC = P75 | IOSTANDARD = LVTTL | PULLDOWN;
+NET "arrow_btn<3>"  LOC = P79 | IOSTANDARD = LVTTL | PULLDOWN;
+
+NET "start_game"  LOC = P81 | IOSTANDARD = LVTTL | PULLDOWN;
