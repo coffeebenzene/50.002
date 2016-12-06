@@ -21,6 +21,9 @@ module mojo_top (
   
   sig rst;                  // reset signal
   sig arrow_press[4];          // arrow_btn after coditioning and edge detection.
+  var raw_tile_num[32];
+  var remain[32];
+  var next_tile_num[4];
   
   .clk(clk) {
     // The reset conditioner is used to synchronize the reset signal to the FPGA
@@ -54,13 +57,17 @@ module mojo_top (
       };
       
       multiplex_display m_display;
+      pn_gen rand_gen;
     }
   }
   
   alu alu;
   
   
+  
+  
   always {
+    rand_gen.next = 1;
     
     // START: Fixed signals
     reset_cond.in = ~rst_n || start_game;   // input raw inverted reset signal. start_game also resets.
@@ -69,6 +76,7 @@ module mojo_top (
     spi_miso = bz;            // not using SPI
     spi_channel = bzzzz;      // not using flags
     avr_rx = bz;              // not using serial port
+    rand_gen.seed = 128h843233523a613966423b622562592c62;
     // END: Fixed signals
     
     
@@ -103,7 +111,6 @@ module mojo_top (
     // END: Display block
     
     
-    
     //START: Game block
     case(game_step.q){
       game_step.WAIT_START:
@@ -122,8 +129,13 @@ module mojo_top (
         }
         
       game_step.MAKE_RAND:
+        rand_gen.next = 1; // signal png_gen to generate new random number
+        raw_tile_num = rand_gen.num;
+        remain = raw_tile_num >> 28;
+        remain = remain * 10;
         game_state.d = game_state.q; // null op
       game_step.SELECT_NUM:
+        next_tile_num = remain[7:4];
         game_state.d = game_state.q; // null op
       game_step.SELECT_POS:
         game_state.d = game_state.q; // null op
@@ -138,6 +150,22 @@ module mojo_top (
       game_step.LOSE:
         lose_led = 1b1;
     }
+
+    //START: Game block TODO: Implement real FSM
+    
+    // State 1 : Generate new tile value
+    
+    // END State 1
+    
+    // State 2 : Put tile inside grid
+    // END State 2
+    
+    // State 3 : Read button input
+    // END State 3
+    
+    // State 4 : Shift grid
+    // END State 4
+    
     // END: Game block
   }
 }
