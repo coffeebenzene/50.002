@@ -11,11 +11,11 @@ module mojo_top (
     input avr_tx,           // AVR TX (FPGA RX)
     output avr_rx,          // AVR RX (FPGA TX)
     input avr_rx_busy,      // AVR RX buffer full
-    output io_led [3][8],   // LEDs on IO Shield
-    output io_seg [8],      // 7-segment LEDs on IO Shield 
-    output io_sel [4],      // Digit select on IO Shield
-    input io_button [5],    // 5 buttons on IO Shield, order 0-4: up, mid, down, left, right.
-    input io_dip [3][8],    // DIP switches on IO Shield
+    //output io_led [3][8],   // LEDs on IO Shield
+    //output io_seg [8],      // 7-segment LEDs on IO Shield 
+    //output io_sel [4],      // Digit select on IO Shield
+    //input io_button [5],    // 5 buttons on IO Shield, order 0-4: up, mid, down, left, right.
+    //input io_dip [3][8],    // DIP switches on IO Shield
     output display_select[3][3], // 3x3 display selector to common anode. ACTIVE HIGH. output 1 for on.
     output display_digit[7], // 7seg display digits to segment cathode. ACTIVE LOW. output 0 for on.
     input arrow_btn[4],      // Arrow buttons. TODO: Will need to encode or prioritise or debounce etc.
@@ -39,14 +39,15 @@ module mojo_top (
       //counter ctr (#SIZE(1), #DIV(24));
       
       //dff game_state[3][3][4](#INIT(36hfffffffff)); // Dunno if this is correct. need to test.
-      dff game_state[3][3][4](#INIT(36h0123f5678)); // FOR TESTING. Should be (0,1,2)(3, ,5)(6,7,8)
+      dff game_state[3][3][4](#INIT(36hf7654321)); // FOR TESTING.
+                                                    // row/col are backwards: (8,7,6)(5, ,3)(2,1,0)
       fsm state = {INITIAL,TESTING,END}; // Current testing state.
       
       multiplex_display m_display;
     }
   }
   
-  alu alu;
+  //alu alu;
   
   
   always {
@@ -64,26 +65,34 @@ module mojo_top (
     //seg.values = dec_ctr.digits;
     
     //seg_map.char = test_case.q;   // Connect test case to 7segment display
-    io_seg = ~8b00000000;       // Display nothing.
-    io_sel = ~4b0000;         // Don't display anything on 7segment yet.
+    //io_seg = ~8b00000000;       // Display nothing.
+    //io_sel = ~4b0000;         // Don't display anything on 7segment yet.
     
-    io_led = {alu.out,8b0,8b0};       // Display only alu output
+    //io_led = {alu.out,8b0,8b0};       // Display only alu output
+    //io_led[0] = alu.out;
     // END: Fixed signals
     
     // START: defaults TODO: TO BE REMOVED
-    alu.alufn = io_dip[2][5:0];   // Connect dip switches to alu inputs.
-    alu.a = io_dip[0];
-    alu.b = io_dip[1];
-    led = 8b0;                    // Show z,v,n outputs on the side led.
-    led[0] = alu.z;
-    led[1] = alu.v;
-    led[2] = alu.n;
+    //alu.alufn = io_dip[2][5:0];   // Connect dip switches to alu inputs.
+    //alu.a = io_dip[0];
+    //alu.b = io_dip[1];
+    //led = 8b0;                    // Show z,v,n outputs on the side led.
+    //led[0] = alu.z;
+    //led[1] = alu.v;
+    //led[2] = alu.n;
+    //led = alu.out;
     //END: defaults
     
     // START: Display block
     m_display.game_state = game_state.q;
     display_select = m_display.display_select;
     display_digit = m_display.display_digit;
+    led[3:0] = game_state.q[2][2];
+    led[7:4] = game_state.q[0][2];
+    //io_led[0] = c{game_state.q[0][0], game_state.q[0][1]};
+    //io_led[1] = c{game_state.q[1][0], game_state.q[1][1]};
+    //io_led[2] = c{game_state.q[2][0], game_state.q[2][1]};
+    game_state.d = game_state.q; // needed to maintain state
     // END: Display block
     
     //START: Game block
