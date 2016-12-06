@@ -13,25 +13,45 @@ module mojo_top (
     input avr_rx_busy,      // AVR RX buffer full
     output display_select[3][3], // 3x3 display selector to common anode. ACTIVE HIGH. output 1 for on.
     output display_digit[7], // 7seg display digits to segment cathode. ACTIVE LOW. output 0 for on.
-    input arrow_btn[4],      // Arrow buttons. TODO: Will need to encode or prioritise or debounce etc.
-    input start_game,         // Start/restart game button. Connected to reset.
+    input arrow_btn[4],      // Arrow buttons. 0-up 1-down 2-left 3-right
+    input start_game,        // Start/restart game button. Connected to reset.
     output win_led,
     output lose_led
   ) {
   
   sig rst;                  // reset signal
-  
+  sig arrow_press[4];          // arrow_btn after coditioning and edge detection.
   
   .clk(clk) {
     // The reset conditioner is used to synchronize the reset signal to the FPGA
     // clock. This ensures the entire FPGA comes out of reset at the same time.
     reset_conditioner reset_cond;
     
+    // For arrow_btn, ed detects rising edges, bc conditions input.
+    edge_detector ed0(#RISE(1), #FALL(0));
+    button_conditioner bc0;
+    edge_detector ed1(#RISE(1), #FALL(0));
+    button_conditioner bc1;
+    edge_detector ed2(#RISE(1), #FALL(0));
+    button_conditioner bc2;
+    edge_detector ed3(#RISE(1), #FALL(0));
+    button_conditioner bc3;
+    
     .rst(rst) {
       //dff game_state[3][3][4](#INIT(36hfffffffff)); // Dunno if this is correct. need to test.
-      dff game_state[3][3][4](#INIT(36hf7654321)); // FOR TESTING.
-                                                   // row/col are backwards: (1,2,3)(4,5,6)(7, ,0)
-      fsm game_step = {INITIAL,TESTING,END}; // Current step in game logic.
+      dff game_state[3][3][4](#INIT(36h564582920)); // FOR TESTING.
+                                                   // row/col are backwards: (1,2,3)(4,5,6)(7, ,8)
+      fsm game_step = { // Current step in game logic.
+        WAIT_START,
+        MAKE_RAND,
+        SELECT_NUM,
+        SELECT_POS,
+        ADD_NUM,
+        WAIT_INPUT,
+        SHIFT,
+        WIN,
+        LOSE
+      };
       
       multiplex_display m_display;
     }
@@ -61,6 +81,17 @@ module mojo_top (
     led = 8b0;
     win_led = 1b0;
     lose_led = 1b0;
+    
+    bc0.in = arrow_btn[0];
+    ed0.in = bc0.out;
+    bc1.in = arrow_btn[1];
+    ed1.in = bc1.out;
+    bc2.in = arrow_btn[2];
+    ed2.in = bc2.out;
+    bc3.in = arrow_btn[3];
+    ed3.in = bc3.out;
+    
+    arrow_press = c{ed3.out, ed2.out, ed1.out, ed0.out};
     //END: defaults
     
     
@@ -74,7 +105,39 @@ module mojo_top (
     
     
     //START: Game block
-    
+    case(game_step.q){
+      game_step.WAIT_START:
+        // FOR TESTING.
+        if (arrow_press[0]){
+          game_state.d[0][1] =  game_state.q[0][1] + 1;
+        }
+        if (arrow_press[1]){
+          game_state.d[2][1] =  game_state.q[2][1] + 1;
+        }
+        if (arrow_press[2]){
+          game_state.d[1][0] =  game_state.q[1][0] + 1;
+        }
+        if (arrow_press[3]){
+          game_state.d[1][2] =  game_state.q[1][2] + 1;
+        }
+        
+      game_step.MAKE_RAND:
+        game_state.d = game_state.q; // null op
+      game_step.SELECT_NUM:
+        game_state.d = game_state.q; // null op
+      game_step.SELECT_POS:
+        game_state.d = game_state.q; // null op
+      game_step.ADD_NUM:
+        game_state.d = game_state.q; // null op
+      game_step.WAIT_INPUT:
+        game_state.d = game_state.q; // null op
+      game_step.SHIFT:
+        game_state.d = game_state.q; // null op
+      game_step.WIN:
+        win_led = 1b1;
+      game_step.LOSE:
+        lose_led = 1b1;
+    }
     // END: Game block
   }
 }
