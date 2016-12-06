@@ -21,9 +21,12 @@ module mojo_top (
   
   sig rst;                  // reset signal
   sig arrow_press[4];          // arrow_btn after coditioning and edge detection.
-  var raw_tile_num[32];
-  var remain[32];
-  var next_tile_num[4];
+  sig easy_numlist[10][8]; // array of 10 8-bits number for easy difficulty
+  sig normal_numlist[10][8]; // array of 10 8-bits number for normal difficulty
+  sig hard_numlist[10][8]; // array of 10 8-bits number for hard difficulty
+  var i;
+  var j;
+  var empty_slots;
   
   .clk(clk) {
     // The reset conditioner is used to synchronize the reset signal to the FPGA
@@ -44,9 +47,13 @@ module mojo_top (
       //dff game_state[3][3][4](#INIT(36hfffffffff)); // Dunno if this is correct. need to test.
       dff game_state[3][3][4](#INIT(36h564582920)); // FOR TESTING.
                                                    // row/col are backwards: (1,2,3)(4,5,6)(7, ,8)
+      dff new_tile_index1[4];
+      dff new_tile_index2[4];
       fsm game_step = { // Current step in game logic.
         WAIT_START,
-        MAKE_RAND,
+        COUNT_EMPTY,
+        MAKE_RAND1,
+        MAKE_RAND2,
         SELECT_NUM,
         SELECT_POS,
         ADD_NUM,
@@ -54,6 +61,12 @@ module mojo_top (
         SHIFT,
         WIN,
         LOSE
+      };
+      
+      fsm randint_step = { // Current step in randint generation
+        BITMASK,
+        MULTIPLY,
+        EXTRACT
       };
       
       multiplex_display m_display;
@@ -76,7 +89,10 @@ module mojo_top (
     spi_miso = bz;            // not using SPI
     spi_channel = bzzzz;      // not using flags
     avr_rx = bz;              // not using serial port
-    rand_gen.seed = 128h843233523a613966423b622562592c62;
+    rand_gen.seed = 128h843233523a613966423b622562592c62; // change to whatever you like
+    easy_numlist = {8b000001, 8b000001,8b000001,8b000001,8b000010,8b000010,8b000010,8b000001,8b000011,8b000011};
+    normal_numlist = {8b000001, 8b000001,8b000001,8b000010,8b000010,8b000010,8b000010,8b000100,8b000011,8b000011};
+    hard_numlist = {8b000001, 8b000001,8b000001,8b000010,8b000010,8b000010,8b000010,8b000100,8b000011,8b000011};
     // END: Fixed signals
     
     
@@ -128,14 +144,44 @@ module mojo_top (
           game_state.d[1][2] =  game_state.q[1][2] + 1;
         }
         
-      game_step.MAKE_RAND:
-        rand_gen.next = 1; // signal png_gen to generate new random number
-        raw_tile_num = rand_gen.num;
-        remain = raw_tile_num >> 28;
-        remain = remain * 10;
+      game_step.COUNT_EMPTY:
+        for (i = 0; i < 3; i++) {
+          for(j=0; j < 3; j++) {
+          }
+        }
+        if (empty_slots == 15) { // go to next step
+        }
+      game_step.MAKE_RAND1:
+        case(randint_step.q) {
+          randint_step.BITMASK: // shift right by 4
+            alu.a = rand_gen.num[20:13];
+            alu.b = 8b00000100;
+            alu.alufn = 6b100001;
+          randint_step.MULTIPLY: // multiply by 10
+            alu.alufn = 6b000010;
+            alu.a = alu.out; // I need to convert this to binary point but idk how
+            alu.b = 8b00001010;
+          randint_step.EXTRACT:
+            new_tile_index1.d = alu.out[7:4]; // store 4 highest bits into new_tile_num
+        }
+        game_state.d = game_state.q; // null op
+      game_step.MAKE_RAND2:
+        case(randint_step.q) {
+          randint_step.BITMASK: // shift right by 4
+            alu.a = rand_gen.num[20:13];
+            alu.b = 8b00000100;
+            alu.alufn = 6b100001;
+          randint_step.MULTIPLY: // multiply by 10
+            alu.alufn = 6b000010;
+            alu.a = alu.out; // I need to convert this to binary point but idk how
+            alu.b = 8b00001010;
+          randint_step.EXTRACT:
+            new_tile_index2.d = alu.out[7:4]; // store 4 highest bits into new_tile_num
+        }
         game_state.d = game_state.q; // null op
       game_step.SELECT_NUM:
-        next_tile_num = remain[7:4];
+        new_tile_index1.d = new_tile_index1.q; // preserve for subsequent cycle
+        new_tile_index2.d = new_tile_index2.q;
         game_state.d = game_state.q; // null op
       game_step.SELECT_POS:
         game_state.d = game_state.q; // null op
