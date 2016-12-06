@@ -11,14 +11,14 @@ module mojo_top (
     input avr_tx,           // AVR TX (FPGA RX)
     output avr_rx,          // AVR RX (FPGA TX)
     input avr_rx_busy,      // AVR RX buffer full
-    //output io_led [3][8],   // LEDs on IO Shield
-    //output io_seg [8],      // 7-segment LEDs on IO Shield 
-    //output io_sel [4],      // Digit select on IO Shield
-    //input io_button [5],    // 5 buttons on IO Shield, order 0-4: up, mid, down, left, right.
-    //input io_dip [3][8],    // DIP switches on IO Shield
-    output display_select[3][3], // 3x3 display selector to common anode. ACTIVE HIGH. output 1 for on.
-    output display_digit[7], // 7seg display digits to segment cathode. ACTIVE LOW. output 0 for on.
-    input arrow_btn[4],      // Arrow buttons. TODO: Will need to encode or prioritise or debounce etc.
+    output io_led [3][8],   // LEDs on IO Shield
+    output io_seg [8],      // 7-segment LEDs on IO Shield 
+    output io_sel [4],      // Digit select on IO Shield
+    input io_button [5],    // 5 buttons on IO Shield, order 0-4: up, mid, down, left, right.
+    input io_dip [3][8],    // DIP switches on IO Shield
+    //output display_select[3][3], // 3x3 display selector to common anode. ACTIVE HIGH. output 1 for on.
+    //output display_digit[7], // 7seg display digits to segment cathode. ACTIVE LOW. output 0 for on.
+    //input arrow_btn[4],      // Arrow buttons. TODO: Will need to encode or prioritise or debounce etc.
     input start_game         // Start/restart game button. TODO: debounce? Wire to reset??
   ) {
   
@@ -39,8 +39,8 @@ module mojo_top (
       //counter ctr (#SIZE(1), #DIV(24));
       
       //dff game_state[3][3][4](#INIT(36hfffffffff)); // Dunno if this is correct. need to test.
-      dff game_state[3][3][4](#INIT(36hf7654321)); // FOR TESTING.
-                                                    // row/col are backwards: (8,7,6)(5, ,3)(2,1,0)
+      dff game_state[3][3][4](#INIT(36h8f7654321)); // FOR TESTING.
+                                                    // row/col are backwards: (8, ,7)(6,5,4)(3,2,1)
       fsm state = {INITIAL,TESTING,END}; // Current testing state.
       
       multiplex_display m_display;
@@ -53,7 +53,7 @@ module mojo_top (
   always {
     
     // START: Fixed signals
-    reset_cond.in = ~rst_n;   // input raw inverted reset signal
+    reset_cond.in = ~rst_n || start_game;   // input raw inverted reset signal
     rst = reset_cond.out;     // conditioned reset
     
     spi_miso = bz;            // not using SPI
@@ -68,7 +68,7 @@ module mojo_top (
     //io_seg = ~8b00000000;       // Display nothing.
     //io_sel = ~4b0000;         // Don't display anything on 7segment yet.
     
-    //io_led = {alu.out,8b0,8b0};       // Display only alu output
+    io_led = {8b0,8b0,8b0};       // Display only alu output
     //io_led[0] = alu.out;
     // END: Fixed signals
     
@@ -85,10 +85,13 @@ module mojo_top (
     
     // START: Display block
     m_display.game_state = game_state.q;
-    display_select = m_display.display_select;
-    display_digit = m_display.display_digit;
+    //display_select = m_display.display_select;
+    //display_digit = m_display.display_digit;
     led[3:0] = game_state.q[2][2];
     led[7:4] = game_state.q[0][2];
+    io_sel = ~ c{1b0, m_display.display_select[0]};
+    io_seg = c{1b1, m_display.display_digit};
+    
     //io_led[0] = c{game_state.q[0][0], game_state.q[0][1]};
     //io_led[1] = c{game_state.q[1][0], game_state.q[1][1]};
     //io_led[2] = c{game_state.q[2][0], game_state.q[2][1]};
