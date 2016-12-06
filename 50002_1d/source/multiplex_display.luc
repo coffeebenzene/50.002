@@ -9,20 +9,28 @@ module multiplex_display (
   .clk(clk), .rst(rst) {
     dff row[2];
     dff col[2];
+    // edge-high every 2^15cycles -> 50MHz/2^15 ~= 3051Hz
+    // full display cycle is 3051Hz/9 -> 339Hz > 240 Hz for no flicker
+    // If you concentrate and it is dim, flicker is visible at lower freq. (unfortunately)
+    counter counter(#SIZE(1), #DIV(14));
   }
   
+  edge_detector edge_detector(.clk(clk), #RISE(1), #FALL(0));
   seven_seg seg_map;
   
   always {
-    
-    // row and col incrementer. Loops through by row first, then by col.
-    row.d = row.q + 1;
-    if (row.q == 2){ // if row/col is at 2, instead of incrementing, reset to 0.
-      row.d = 0;
-      
-      col.d = col.q + 1; // col increments only if row resets.
-      if (col.q == 2){
-        col.d = 0;
+    edge_detector.in = counter.value; // Need to delay the switching to allow led/registers to stabilise.
+    if (edge_detector.out == 1){
+      // row and col incrementer. Loops through by row first, then by col.
+      // ie. display top-down then left-right (1,4,7)(2,5,8)(3,6,9)
+      row.d = row.q + 1;
+      if (row.q == 2){ // if row/col is at 2, instead of incrementing, reset to 0.
+        row.d = 0;
+        
+        col.d = col.q + 1; // col increments only if row resets.
+        if (col.q == 2){
+          col.d = 0;
+        }
       }
     }
     

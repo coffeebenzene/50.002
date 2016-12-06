@@ -11,89 +11,67 @@ module mojo_top (
     input avr_tx,           // AVR TX (FPGA RX)
     output avr_rx,          // AVR RX (FPGA TX)
     input avr_rx_busy,      // AVR RX buffer full
-    //output io_led [3][8],   // LEDs on IO Shield
-    //output io_seg [8],      // 7-segment LEDs on IO Shield 
-    //output io_sel [4],      // Digit select on IO Shield
-    //input io_button [5],    // 5 buttons on IO Shield, order 0-4: up, mid, down, left, right.
-    //input io_dip [3][8],    // DIP switches on IO Shield
     output display_select[3][3], // 3x3 display selector to common anode. ACTIVE HIGH. output 1 for on.
     output display_digit[7], // 7seg display digits to segment cathode. ACTIVE LOW. output 0 for on.
     input arrow_btn[4],      // Arrow buttons. TODO: Will need to encode or prioritise or debounce etc.
-    input start_game         // Start/restart game button. TODO: debounce? Wire to reset??
+    input start_game,         // Start/restart game button. Connected to reset.
+    output win_led,
+    output lose_led
   ) {
   
   sig rst;                  // reset signal
   
-  // Note: io_demo defaults for unused components are kept for future reference. TODO: CHECK
   
   .clk(clk) {
     // The reset conditioner is used to synchronize the reset signal to the FPGA
     // clock. This ensures the entire FPGA comes out of reset at the same time.
     reset_conditioner reset_cond;
     
-    //edge_detector edge_detector (#RISE(1), #FALL(0)); // From io_demo default
-    
     .rst(rst) {
-      //multi_seven_seg seg; // From io_demo default
-      //multi_dec_ctr dec_ctr;
-      //counter ctr (#SIZE(1), #DIV(24));
-      
       //dff game_state[3][3][4](#INIT(36hfffffffff)); // Dunno if this is correct. need to test.
       dff game_state[3][3][4](#INIT(36hf7654321)); // FOR TESTING.
-                                                    // row/col are backwards: (8,7,6)(5, ,3)(2,1,0)
-      fsm state = {INITIAL,TESTING,END}; // Current testing state.
+                                                   // row/col are backwards: (1,2,3)(4,5,6)(7, ,0)
+      fsm game_step = {INITIAL,TESTING,END}; // Current step in game logic.
       
       multiplex_display m_display;
     }
   }
   
-  //alu alu;
+  alu alu;
   
   
   always {
     
     // START: Fixed signals
-    reset_cond.in = ~rst_n;   // input raw inverted reset signal
+    reset_cond.in = ~rst_n || start_game;   // input raw inverted reset signal. start_game also resets.
     rst = reset_cond.out;     // conditioned reset
     
     spi_miso = bz;            // not using SPI
     spi_channel = bzzzz;      // not using flags
     avr_rx = bz;              // not using serial port
-    
-    //edge_detector.in = ctr.value;     // From io_demo default TODO: CHECK
-    //dec_ctr.inc = edge_detector.out;
-    //seg.values = dec_ctr.digits;
-    
-    //seg_map.char = test_case.q;   // Connect test case to 7segment display
-    //io_seg = ~8b00000000;       // Display nothing.
-    //io_sel = ~4b0000;         // Don't display anything on 7segment yet.
-    
-    //io_led = {alu.out,8b0,8b0};       // Display only alu output
-    //io_led[0] = alu.out;
     // END: Fixed signals
     
-    // START: defaults TODO: TO BE REMOVED
-    //alu.alufn = io_dip[2][5:0];   // Connect dip switches to alu inputs.
-    //alu.a = io_dip[0];
-    //alu.b = io_dip[1];
-    //led = 8b0;                    // Show z,v,n outputs on the side led.
-    //led[0] = alu.z;
-    //led[1] = alu.v;
-    //led[2] = alu.n;
-    //led = alu.out;
+    
+    
+    // START: defaults
+    game_state.d = game_state.q; // Needed to maintain state
+    alu.alufn = 6b000000;
+    alu.a = 8b0;
+    alu.b = 8b0;
+    led = 8b0;
+    win_led = 1b0;
+    lose_led = 1b0;
     //END: defaults
+    
+    
     
     // START: Display block
     m_display.game_state = game_state.q;
     display_select = m_display.display_select;
     display_digit = m_display.display_digit;
-    led[3:0] = game_state.q[2][2];
-    led[7:4] = game_state.q[0][2];
-    //io_led[0] = c{game_state.q[0][0], game_state.q[0][1]};
-    //io_led[1] = c{game_state.q[1][0], game_state.q[1][1]};
-    //io_led[2] = c{game_state.q[2][0], game_state.q[2][1]};
-    game_state.d = game_state.q; // needed to maintain state
     // END: Display block
+    
+    
     
     //START: Game block
     
