@@ -15,7 +15,6 @@
     <src top="true">mojo_top.luc</src>
     <src>multiplex_display.luc</src>
     <ucf lib="true">io_shield.ucf</ucf>
-    <ucf>custom.ucf</ucf>
     <ucf lib="true">mojo.ucf</ucf>
     <component>decoder.luc</component>
     <component>pn_gen.luc</component>

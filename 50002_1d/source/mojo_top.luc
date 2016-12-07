@@ -31,13 +31,13 @@ module mojo_top (
     output io_seg [8],      // 7-segment LEDs on IO Shield 
     output io_sel [4],      // Digit select on IO Shield
     input io_button [5],    // 5 buttons on IO Shield, order 0-4: up, mid, down, left, right.
-    input io_dip [3][8],    // DIP switches on IO Shield
+    input io_dip [3][8]    // DIP switches on IO Shield
     //output display_select[3][3], // 3x3 display selector to common anode. ACTIVE HIGH. output 1 for on.
     //output display_digit[7], // 7seg display digits to segment cathode. ACTIVE LOW. output 0 for on.
     //input arrow_btn[4],      // Arrow buttons. TODO: Will need to encode or prioritise or debounce etc.
-    input start_game,        // Start/restart game button. Connected to reset.
-    output win_led,
-    output lose_led
+    //input start_game,        // Start/restart game button. Connected to reset.
+    //output win_led,
+    //output lose_led
   ) {
   
   sig rst;                  // reset signal
@@ -70,7 +70,7 @@ module mojo_top (
     .rst(rst) {
       //dff game_state[3][3][4](#INIT(36hfffffffff)); // row/col are backwards: 36h123456789
                                                       // is (9,8,7)(6,5,4)(3,2,1)
-      dff game_state[3][3][4](#INIT(36h564582920)); // FOR TESTING.
+      dff game_state[3][3][4](#INIT(36h98f9ff885)); // FOR TESTING.
                                                     // row/col are backwards: (1,2,3)(4,5,6)(7, ,8)
       dff rowindex[2]; // Common registers for indexing row/col.
       dff colindex[2];
@@ -130,7 +130,7 @@ module mojo_top (
     rand_gen.next = 1;
     
     // START: Fixed signals
-    reset_cond.in = ~rst_n || start_game;   // input raw inverted reset signal. start_game also resets.
+    reset_cond.in = ~rst_n; // || start_game;   // input raw inverted reset signal. start_game also resets.
     rst = reset_cond.out;     // conditioned reset
     
     spi_miso = bz;            // not using SPI
@@ -139,9 +139,7 @@ module mojo_top (
     
     zero = 1b0;
     
-
     io_led = {8b0,8b0,8b0};       // Display only alu output
-    //io_led[0] = alu.out;
 
     rand_gen.seed = randseed.value; // Seed based on absolute time. 
     easy_numlist = {8b000001, 8b000001,8b000001,8b000001,8b000010,8b000010,8b000010,8b000001,8b000011,8b000011};
@@ -161,8 +159,8 @@ module mojo_top (
     alu.a = 8b0;
     alu.b = 8b0;
     led = 8b0;
-    win_led = 1b0;
-    lose_led = 1b0;
+    //win_led = 1b0;
+    //lose_led = 1b0;
     
     bc0.in = io_button[0];
     ed0.in = bc0.out;
@@ -182,15 +180,12 @@ module mojo_top (
     m_display.game_state = game_state.q;
     //display_select = m_display.display_select;
     //display_digit = m_display.display_digit;
-    led[3:0] = game_state.q[2][2];
-    led[7:4] = game_state.q[0][2];
-    io_sel = ~ c{1b0, m_display.display_select[0]};
+    io_sel = ~ c{1b0, m_display.display_select[0][0], m_display.display_select[0][1],  m_display.display_select[0][2]};
     io_seg = c{1b1, m_display.display_digit};
     
-    //io_led[0] = c{game_state.q[0][0], game_state.q[0][1]};
-    //io_led[1] = c{game_state.q[1][0], game_state.q[1][1]};
-    //io_led[2] = c{game_state.q[2][0], game_state.q[2][1]};
-    game_state.d = game_state.q; // needed to maintain state
+    io_led[0] = c{game_state.q[2][1], game_state.q[2][2]};
+    io_led[1] = c{game_state.q[1][2], game_state.q[2][0]};
+    io_led[2] = c{game_state.q[1][0], game_state.q[1][1]};
     // END: Display block
     
     
@@ -199,18 +194,21 @@ module mojo_top (
     case(game_step.q){
       game_step.WAIT_START:
         // FOR TESTING.
-        if (direction_enc.out == 0){
-          game_state.d[0][1] =  game_state.q[0][1] + 1;
+        if(|arrow_press){
+          if (direction_enc.out == 0){
+            game_state.d[0][1] =  game_state.q[0][1] + 1;
+          }
+          if (direction_enc.out == 1){
+            game_state.d[2][1] =  game_state.q[2][1] + 1;
+          }
+          if (direction_enc.out == 2){
+            game_state.d[1][0] =  game_state.q[1][0] + 1;
+          }
+          if (direction_enc.out == 3){
+            game_state.d[1][2] =  game_state.q[1][2] + 1;
+          }
         }
-        if (direction_enc.out == 1){
-          game_state.d[2][1] =  game_state.q[2][1] + 1;
-        }
-        if (direction_enc.out == 2){
-          game_state.d[1][0] =  game_state.q[1][0] + 1;
-        }
-        if (direction_enc.out == 3){
-          game_state.d[1][2] =  game_state.q[1][2] + 1;
-        }
+        game_step.d = game_step.WAIT_INPUT;
         
       game_step.COUNT_EMPTY:
         for (i = 0; i < 3; i++) {
@@ -307,7 +305,7 @@ module mojo_top (
             alu.alufn = Alufn.CMPEQ;
             if (alu.out==0){ // if num != 0xf
               shift_row.d[shift_row_pointer.q] = game_state.q[rowindex.q][colindex.q];
-              game_state.d[rowindex.q][colindex.q] = 4hf; // also clear cell for COLLATE_IN later.
+              game_state.d[rowindex.q][colindex.q] = 4hf; // also clear cell for COLLATE_IN later.              
               shift_row_pointer.d = shift_row_pointer.q + 1;
             }
             shift_step.d = shift_step.COLLATE_OUT4;
@@ -324,15 +322,13 @@ module mojo_top (
             // If row is empty, skip
             // Otherwise, compare adjacent cells. If they're the same, combine.
             // In general case, should be a loop, but for 3x3, 2 if statements is enough.
-            if (shift_row.q[0] == 4hf){ // empty row, skip.
-              
-            } else if (shift_row.q[0] == shift_row.q[1] ) {
+            if (shift_row.q[0] == shift_row.q[1] && shift_row.q[0] != 4hf) {
               alu.a = c{ 4h0, shift_row.q[0] };
               alu.b = 8h01;
               alu.alufn = Alufn.ADD;
               shift_row.d[0] = alu.out[3:0];
               shift_row.d[1] = 4hf;
-            } else if (shift_row.q[1] == shift_row.q[2] ) {
+            } else if (shift_row.q[1] == shift_row.q[2] && shift_row.q[1] != 4hf) {
               alu.a = c{ 4h0, shift_row.q[1] };
               alu.b = 8h01;
               alu.alufn = Alufn.ADD;
@@ -399,18 +395,22 @@ module mojo_top (
           }
         }
         
-        alu.a = 8h0a;
+        alu.a = 8d10;
         alu.b = c{ 4h0, game_state.q[rowindex.q][colindex.q] };
         alu.alufn = Alufn.CMPLE;
         if (alu.out){ // Needs to be at bottom to overwrite COUNT_EMPTY if at [2][2]
-          game_step.d = game_step.WIN;
+          if (game_state.q[rowindex.q][colindex.q] != 4hf){
+            game_step.d = game_step.WIN;
+          }
         }
         
       game_step.WIN:
-        win_led = 1b1;
+        //win_led = 1b1;
+        led[3:0] = 4hf;
         
       game_step.LOSE:
-        lose_led = 1b1;
+        //lose_led = 1b1;
+        led[7:4] = 1b1;
     }
     // END: Game block
   }
