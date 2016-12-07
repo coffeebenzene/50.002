@@ -38,12 +38,11 @@ module mojo_top (
   sig rst;                  // reset signal
   sig zero;                 // fixed 1bit 0.
   sig arrow_press[4];          // arrow_btn after coditioning and edge detection.
-  sig easy_numlist[10][4]; // array of 10 8-bits number for easy difficulty
-  sig normal_numlist[10][4]; // array of 10 8-bits number for normal difficulty
-  sig hard_numlist[10][4]; // array of 10 8-bits number for hard difficulty
-  var i;
-  var j;
-  var empty_slots[8];
+  
+  // TODO: check/remove this. May not be necessary.
+  sig easy_numlist[8][4]; // array of 8 numbers for easy difficulty
+  sig normal_numlist[8][4]; // array of 8 numbers for normal difficulty
+  sig hard_numlist[8][4]; // array of 8 numbers for hard difficulty
   
   .clk(clk) {
     // The reset conditioner is used to synchronize the reset signal to the FPGA
@@ -65,12 +64,18 @@ module mojo_top (
     .rst(rst) {
       //dff game_state[3][3][4](#INIT(36hfffffffff)); // row/col are backwards: 36h123456789
                                                       // is (9,8,7)(6,5,4)(3,2,1)
-      dff game_state[3][3][4](#INIT(36h564582920)); // FOR TESTING.
+      // Global variables
+      dff game_state[3][3][4](#INIT(36h98f9ff885)); // FOR TESTING.
                                                     // row/col are backwards: (1,2,3)(4,5,6)(7, ,8)
       dff rowindex[2]; // Common registers for indexing row/col.
       dff colindex[2];
+      dff empty_slots[4]; // number of empty tiles.
+      dff numlist[8][4]; // List of numbers to pick from.
+                         // 8 numbers for uniform distribution of prng.
+      dff new_num[4];
+      dff new_pos[4];
       
-      
+      // TODO: Check.
       dff new_tile_index1[4];
       dff new_tile_index2[4];
       dff new_tile_num[4];
@@ -90,12 +95,17 @@ module mojo_top (
         LOSE
       };
       
+      // Randint variables
+      dff randint1[3];
+      dff randint2[4];
+      dff randint_temp[8];
       fsm randint_step = { // Current substep in randint generation
         BITMASK,
         MULTIPLY,
         EXTRACT
       };
       
+      // Shift variables
       dff shift_direction[2];
       dff shift_line[2];
       dff shift_i[2];
@@ -136,10 +146,13 @@ module mojo_top (
 
     zero = 1b0;
     
-    rand_gen.seed = randseed.value; // Seed based on absolute time. 
-    easy_numlist = {4h1, 4h1,4h1,4h1,4h2,4h2,4h2,4h1,4h3,4h3};
-    normal_numlist = {4h1, 4h1,4h1,4h2,4h2,4h2,4h2,4h4,4h3,4h3};
-    hard_numlist = {4h1, 4h1,4h1,4h2,4h2,4h2,4h2,4h4,4h3,4h3};
+    rand_gen.seed = randseed.value; // Seed based on absolute time.
+    
+    // TODO: Check
+    easy_numlist = {4h1,4h1,4h1,4h1,4h2,4h2,4h2,4h1};
+    normal_numlist = {4h1,4h1,4h1,4h2,4h2,4h2,4h2,4h4};
+    hard_numlist = {4h1,4h1,4h1,4h2,4h2,4h2,4h2,4h4};
+    numlist.d = normal_numlist;
     // END: Fixed signals
     
     
@@ -148,6 +161,7 @@ module mojo_top (
     game_state.d = game_state.q; // Needed to maintain state
     rowindex.d = rowindex.q;
     colindex.d = colindex.q;
+    empty_slots.d = empty_slots.q;
     
     alu.alufn = 6b000000;
     alu.a = 8b0;
@@ -196,70 +210,93 @@ module mojo_top (
             game_state.d[1][2] =  game_state.q[1][2] + 1;
           }
         }
-        game_step.d = game_step.WAIT_INPUT;
+        rowindex.d = 2d0;
+        colindex.d = 2d0;
+        empty_slots.d = 4d0;
+        // game_step.d = game_step.COUNT_EMPTY; // TODO: DEBUG
+        game_step.d = game_step.WAIT_INPUT; // TODO: DEBUG
         
       game_step.COUNT_EMPTY:
-        empty_slots = 8b00000000;
-        for (i = 0; i < 3; i++) {
-          for(j=0; j < 3; j++) {
-            if (game_state.q[i][j] == 4b1111) {
-              empty_slots = empty_slots + 8b00000001;
-            }
+        // Check if slot is empty.
+        alu.a = c{ 4h0, game_state.q[rowindex.q][colindex.q] };
+        alu.b = 8h0f;
+        alu.alufn = Alufn.CMPEQ;
+        if (alu.out){
+		       empty_slots.d = empty_slots.q + 1;
+        }
+        // Advance to next slot, or go to next step if done.
+        rowindex.d = rowindex.q + 1;
+        if (rowindex.q == 2){ // if row is at 2, instead of incrementing, reset to 0.
+          rowindex.d = 0;
+          
+          colindex.d = colindex.q + 1;
+          if (colindex.q == 2){ // End of check. Next step.
+            colindex.d = 0;
+            game_step.d = game_step.MAKE_RAND1;
+            randint_step.d = randint_step.BITMASK;
           }
         }
-        if (empty_slots == 8b00000000) { // you've lost the game
-        }
-        else { // go make some randint
-        }
         
-      game_step.MAKE_RAND1:
+      game_step.MAKE_RAND1: // Get random integer to select number from numlist
+        // numlist is chosen to be length 8 so that 3 bits can simply be bitmasked.
+        alu.a = rand_gen.num[7:0];
+        alu.b = 8b00000111;
+        alu.alufn = Alufn.AND;
+        randint1.d = alu.out[2:0];
+        game_step.d = game_step.MAKE_RAND2;
+        randint_step.d = randint_step.BITMASK;
+        
+      game_step.MAKE_RAND2: // Get random integer for empty slot to add number.
+        // How randint works:
+        // The PRNG generates random bits, we want a random integer. The range may vary.
+        // The random integer fits within 4bits (range is max 0-9)
+        // Thus, we create an virtual decimal point after bit 4,
+        // and multiply the fractional part by the range to get a random integer.
+        // As random bits, the fractional part should also be approx 
+        //   uniformly distributed, up to the precision of bits in fractional part.
+        // 1. Bitmasking is first used to remove the integer part.
+        // 2. Multiply by range.
+        // 3. Extract the integer part by shift right number of fractional bits.
         case(randint_step.q) {
-          randint_step.BITMASK: // shift right by 4
-            alu.a = rand_gen.num[20:13];
-            alu.b = 8b00000100;
-            alu.alufn = 6b100001;
-          randint_step.MULTIPLY: // multiply by 10
-            alu.alufn = 6b000010;
-            alu.a = alu.out; // I need to convert this to binary point but idk how
-            alu.b = 8b00001010;
-          randint_step.EXTRACT:
-            new_tile_index1.d = alu.out[7:4]; // store 4 highest bits into new_tile_num
+          randint_step.BITMASK: // Bitmask out upper 4 bits of PRNG.
+            alu.a = rand_gen.num[7:0];
+            alu.b = 8b00001111;
+            alu.alufn = Alufn.AND;
+            randint_temp.d = alu.out;
+            randint_step.d = randint_step.MULTIPLY;
+            
+          randint_step.MULTIPLY: // Multiply by number of empty_slots.
+            alu.a = randint_temp.q;
+            alu.b = empty_slots.q;
+            alu.alufn = Alufn.MUL;
+            randint_temp.d = alu.out;
+            randint_step.d = randint_step.EXTRACT;
+            
+          randint_step.EXTRACT: // Extract randint by shifting.
+            alu.a = randint_temp.q;
+            alu.b = 8d4;
+            alu.alufn = Alufn.SHR;
+            randint2.d = alu.out[3:0];
+            game_step.d = game_step.SELECT_NUM;
         }
         
-      game_step.MAKE_RAND2:
-        case(randint_step.q) {
-          randint_step.BITMASK: // shift right by 4
-            alu.a = rand_gen.num[20:13];
-            alu.b = 8b00000100;
-            alu.alufn = 6b100001;
-          randint_step.MULTIPLY: // multiply by 10
-            alu.alufn = 6b000010;
-            alu.a = alu.out; // I need to convert this to binary point but idk how
-            alu.b = empty_slots;
-          randint_step.EXTRACT:
-            new_tile_index2.d = alu.out[7:4]; // store 4 highest bits into new_tile_num
-        }
+      game_step.SELECT_NUM: // Select the new number to insert.
+        new_num.d = numlist.q[randint1.q];
+        game_step.d = game_step.SELECT_POS;
         
-      game_step.SELECT_NUM:
-        new_tile_index1.d = new_tile_index1.q; // preserve for subsequent cycles
-        new_tile_index2.d = new_tile_index2.q;
-        new_tile_num.d = easy_numlist[new_tile_index1.q];
-        
-        game_state.d = game_state.q; // null op
       game_step.SELECT_POS: // TODO: This method of choosing position is not correct fix later
         new_tile_num.d = new_tile_num.q;
         new_tile_pos.d = game_state.q[0][new_tile_index2.q]; // TODO: Change 0 to real index based on arrow press
 
-        game_state.d = game_state.q; // null op
+        game_step.d = game_step.ADD_NUM; // null op advance
         
-      game_step.ADD_NUM:
-        game_state.d = game_state.q; // null op
+      game_step.ADD_NUM: // TODO: Implement
+        game_step.d = game_step.WAIT_INPUT; // null op advance
         
       game_step.WAIT_INPUT:
         if(|arrow_press){
           shift_direction.d = direction_enc.out;
           game_step.d = game_step.SHIFT;
-          // TODO: Any other setup.
           shift_step.d = shift_step.COLLATE_OUT1;
           shift_line.d = 0;
         }
@@ -383,12 +420,13 @@ module mojo_top (
       
       game_step.CHECK10:
         rowindex.d = rowindex.q + 1;
-        if (rowindex.q == 2){ // if row/col is at 2, instead of incrementing, reset to 0.
+        if (rowindex.q == 2){ // if row is at 2, instead of incrementing, reset to 0.
           rowindex.d = 0;
           
           colindex.d = colindex.q + 1;
-          if (colindex.q == 2){ // End of check. Next round.
+          if (colindex.q == 2){ // End of check. Next step.
             colindex.d = 0;
+            empty_slots.d = 4d0;
             game_step.d = game_step.COUNT_EMPTY;
           }
         }
