@@ -19,6 +19,8 @@ module multiplex_display (
   seven_seg seg_map;
   
   always {
+    row.d = row.q;
+    col.d = col.q;
     edge_detector.in = counter.value; // Need to delay the switching to allow led/registers to stabilise.
     if (edge_detector.out == 1){
       // row and col incrementer. Loops through by row first, then by col.

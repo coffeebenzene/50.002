@@ -1,3 +1,19 @@
+global Alufn{
+  const ADD   = 6b000000;
+  const SUB   = 6b000001;
+  const MUL   = 6b000010;
+  const AND   = 6b011000;
+  const OR    = 6b011110;
+  const XOR   = 6b010110;
+  const A     = 6b011010;
+  const SHL   = 6b100000;
+  const SHR   = 6b100001;
+  const SRA   = 6b100011;
+  const CMPEQ = 6b110011;
+  const CMPLT = 6b110101;
+  const CMPLE = 6b110111;
+}
+
 module mojo_top (
     input clk,              // 50MHz clock
     input rst_n,            // reset button (active low)
@@ -51,7 +67,10 @@ module mojo_top (
                                                       // is (9,8,7)(6,5,4)(3,2,1)
       dff game_state[3][3][4](#INIT(36h564582920)); // FOR TESTING.
                                                     // row/col are backwards: (1,2,3)(4,5,6)(7, ,8)
-      dff direction[2];
+      dff rowindex[2]; // Common registers for indexing row/col.
+      dff colindex[2];
+      
+      
       dff new_tile_index1[4];
       dff new_tile_index2[4];
       fsm game_step = { // Current step in game logic.
@@ -64,14 +83,32 @@ module mojo_top (
         ADD_NUM,
         WAIT_INPUT,
         SHIFT,
+        CHECK10,
         WIN,
         LOSE
       };
       
-      fsm randint_step = { // Current step in randint generation
+      fsm randint_step = { // Current substep in randint generation
         BITMASK,
         MULTIPLY,
         EXTRACT
+      };
+      
+      dff shift_direction[2];
+      dff shift_line[2];
+      dff shift_i[2];
+      dff shift_row[3][4]; // working row for row collation
+      dff shift_row_pointer[2]; // Destination pointer for row collation
+      fsm shift_step = { // substep in row/col shifting.
+        COLLATE_OUT1, // collate out to working row
+        COLLATE_OUT2,
+        COLLATE_OUT3,
+        COLLATE_OUT4,
+        COMPARE,
+        COLLATE_IN1, // collate back in to game state.
+        COLLATE_IN2,
+        COLLATE_IN3,
+        INCREMENT
       };
       
       multiplex_display m_display;
@@ -107,6 +144,9 @@ module mojo_top (
     
     // START: defaults
     game_state.d = game_state.q; // Needed to maintain state
+    rowindex.d = rowindex.q;
+    colindex.d = colindex.q;
+    
     alu.alufn = 6b000000;
     alu.a = 8b0;
     alu.b = 8b0;
@@ -202,15 +242,150 @@ module mojo_top (
         
       game_step.WAIT_INPUT:
         if(|arrow_press){
-          // TODO: Any other setup.
-          direction.d = direction_enc.out;
+          shift_direction.d = direction_enc.out;
           game_step.d = game_step.SHIFT;
+          // TODO: Any other setup.
+          shift_step.d = shift_step.COLLATE_OUT1;
+          shift_line.d = 0;
+        }
+      
+      // START: Shift board state. complicated state deserves it's own start and end.
+      game_step.SHIFT:
+        shift_direction.d = shift_direction.q;
+        shift_line.d = shift_line.q;
+        shift_i.d = shift_i.q;
+        shift_row.d = shift_row.q;
+        shift_row_pointer.d = shift_row_pointer.q;
+        
+        case(shift_step.q){
+          
+          shift_step.COLLATE_OUT1: // Setup collating variables. BEFORE loop
+            shift_row.d = {4hf,4hf,4hf};
+            shift_row_pointer.d = 0;
+            shift_i.d = 0;
+            shift_step.d = shift_step.COLLATE_OUT2;
+            
+          shift_step.COLLATE_OUT2: // Setup row/col indexes for loop. INSIDE loop
+            case (shift_direction.q){
+              0: // Up
+                rowindex.d = shift_i.q;
+                colindex.d = shift_line.q;
+              1: // Down
+                rowindex.d = 2 - shift_i.q;
+                colindex.d = shift_line.q;
+              2: // Left
+                rowindex.d = shift_line.q;
+                colindex.d = shift_i.q;
+              3: // Right
+                rowindex.d = shift_line.q;
+                colindex.d = 2 - shift_i.q;
+            }
+            shift_step.d = shift_step.COLLATE_OUT3;
+            
+          shift_step.COLLATE_OUT3: // Do collation. INSIDE loop
+            alu.a = c{ 4h0, game_state.q[rowindex.q][colindex.q] };
+            alu.b = 8h0f;
+            alu.alufn = Alufn.CMPEQ;
+            if (alu.out==0){ // if num != 0xf
+              shift_row.d[shift_row_pointer.q] = game_state.q[rowindex.q][colindex.q];
+              game_state.d[rowindex.q][colindex.q] = 4hf; // also clear cell for COLLATE_IN later.
+              shift_row_pointer.d = shift_row_pointer.q + 1;
+            }
+            shift_step.d = shift_step.COLLATE_OUT4;
+            
+          shift_step.COLLATE_OUT4: // Loop check for collate out.
+            shift_i.d = shift_i.q + 1;
+            shift_step.d = shift_step.COLLATE_OUT2;
+            if (shift_i.q==2){
+              shift_step.d = shift_step.COMPARE;
+            }
+          
+          
+          shift_step.COMPARE:
+            // If row is empty, skip
+            // Otherwise, compare adjacent cells. If they're the same, combine.
+            // In general case, should be a loop, but for 3x3, 2 if statements is enough.
+            if (shift_row.q[0] == 4hf){ // empty row, skip.
+              
+            } else if (shift_row.q[0] == shift_row.q[1] ) {
+              alu.a = c{ 4h0, shift_row.q[0] };
+              alu.b = 8h01;
+              alu.alufn = Alufn.ADD;
+              shift_row.d[0] = alu.out[3:0];
+              shift_row.d[1] = 4hf;
+            } else if (shift_row.q[1] == shift_row.q[2] ) {
+              alu.a = c{ 4h0, shift_row.q[1] };
+              alu.b = 8h01;
+              alu.alufn = Alufn.ADD;
+              shift_row.d[1] = alu.out[3:0];
+              shift_row.d[2] = 4hf;
+            }
+            shift_step.d = shift_step.COLLATE_IN1;
+          
+          
+          shift_step.COLLATE_IN1: // Setup collating variables. BEFORE loop
+            shift_row_pointer.d = 0;
+            shift_i.d = 0;
+            shift_step.d = shift_step.COLLATE_IN2;
+          
+          shift_step.COLLATE_IN2: // Do collation. INSIDE loop
+            alu.a = c{ 4h0, shift_row.q[shift_i.q] };
+            alu.b = 8h0f;
+            alu.alufn = Alufn.CMPEQ;
+            if (alu.out==0){ // if num != 0xf
+              case (shift_direction.q){
+                0: // Up
+                  game_state.d[shift_row_pointer.q][shift_line.q] = shift_row.q[shift_i.q];
+                1: // Down
+                  game_state.d[2-shift_row_pointer.q][shift_line.q] = shift_row.q[shift_i.q];
+                2: // Left
+                  game_state.d[shift_line.q][shift_row_pointer.q] = shift_row.q[shift_i.q];
+                3: // Right
+                  game_state.d[shift_line.q][2-shift_row_pointer.q] = shift_row.q[shift_i.q];
+              }
+              shift_row_pointer.d = shift_row_pointer.q + 1;
+            }
+            shift_step.d = shift_step.COLLATE_IN3;
+          
+          shift_step.COLLATE_IN3: // Loop check for collate in.
+            shift_i.d = shift_i.q + 1;
+            shift_step.d = shift_step.COLLATE_IN2;
+            if (shift_i.q==2){
+              shift_step.d = shift_step.INCREMENT;
+            }
+          
+          
+          shift_step.INCREMENT:
+            shift_line.d = shift_line.q + 1;
+            if(shift_line.q == 2){
+              game_step.d = game_step.CHECK10;
+              rowindex.d = 2d0;
+              colindex.d = 2d0;
+            } else {
+              shift_step.d = shift_step.COLLATE_OUT1;
+            }
+        
+        }
+      // END: Shift board state
+      
+      game_step.CHECK10:
+        rowindex.d = rowindex.q + 1;
+        if (rowindex.q == 2){ // if row/col is at 2, instead of incrementing, reset to 0.
+          rowindex.d = 0;
+          
+          colindex.d = colindex.q + 1;
+          if (colindex.q == 2){ // End of check. Next round.
+            colindex.d = 0;
+            game_step.d = game_step.COUNT_EMPTY;
+          }
         }
         
-      game_step.SHIFT:
-        
-        
-        game_state.d = game_state.q; // null op
+        alu.a = 8h0a;
+        alu.b = c{ 4h0, game_state.q[rowindex.q][colindex.q] };
+        alu.alufn = Alufn.CMPLE;
+        if (alu.out){ // Needs to be at bottom to overwrite COUNT_EMPTY if at [2][2]
+          game_step.d = game_step.WIN;
+        }
         
       game_step.WIN:
         win_led = 1b1;
