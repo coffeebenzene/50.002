@@ -20,6 +20,7 @@ module mojo_top (
   ) {
   
   sig rst;                  // reset signal
+  sig zero;                 // fixed 1bit 0.
   sig arrow_press[4];          // arrow_btn after coditioning and edge detection.
   sig easy_numlist[10][8]; // array of 10 8-bits number for easy difficulty
   sig normal_numlist[10][8]; // array of 10 8-bits number for normal difficulty
@@ -42,6 +43,8 @@ module mojo_top (
     button_conditioner bc2;
     edge_detector ed3(#RISE(1), #FALL(0));
     button_conditioner bc3;
+    
+    counter randseed(.rst(zero), #SIZE(32)); // unresettable counter.
     
     .rst(rst) {
       //dff game_state[3][3][4](#INIT(36hfffffffff)); // row/col are backwards: 36h123456789
@@ -92,7 +95,9 @@ module mojo_top (
     spi_channel = bzzzz;      // not using flags
     avr_rx = bz;              // not using serial port
     
-    rand_gen.seed = 128h843233523a613966423b622562592c62; // change to whatever you like
+    zero = 1b0;
+    
+    rand_gen.seed = randseed.value; // Seed based on absolute time. 
     easy_numlist = {8b000001, 8b000001,8b000001,8b000001,8b000010,8b000010,8b000010,8b000001,8b000011,8b000011};
     normal_numlist = {8b000001, 8b000001,8b000001,8b000010,8b000010,8b000010,8b000010,8b000100,8b000011,8b000011};
     hard_numlist = {8b000001, 8b000001,8b000001,8b000010,8b000010,8b000010,8b000010,8b000100,8b000011,8b000011};
@@ -203,6 +208,7 @@ module mojo_top (
         }
         
       game_step.SHIFT:
+        
         
         game_state.d = game_state.q; // null op
         
