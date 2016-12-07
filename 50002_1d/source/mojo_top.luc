@@ -83,6 +83,7 @@ module mojo_top (
       fsm game_step = { // Current step in game logic.
         WAIT_START,
         COUNT_EMPTY,
+        CHECK_LOSE,
         MAKE_RAND1,
         MAKE_RAND2,
         SELECT_NUM,
@@ -232,9 +233,20 @@ module mojo_top (
           colindex.d = colindex.q + 1;
           if (colindex.q == 2){ // End of check. Next step.
             colindex.d = 0;
-            game_step.d = game_step.MAKE_RAND1;
-            randint_step.d = randint_step.BITMASK;
+            game_step.d = game_step.CHECK_LOSE;
+            
           }
+        }
+      
+      game_step.CHECK_LOSE:
+        alu.a = c{ 4h0, empty_slots.q };
+        alu.b = 8h00;
+        alu.alufn = Alufn.CMPEQ;
+        if (alu.out){
+		       game_step.d = game_step.LOSE;
+        } else {
+          game_step.d = game_step.MAKE_RAND1;
+          randint_step.d = randint_step.BITMASK;
         }
         
       game_step.MAKE_RAND1: // Get random integer to select number from numlist
