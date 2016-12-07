@@ -21,12 +21,12 @@ module mojo_top (
   
   sig rst;                  // reset signal
   sig arrow_press[4];          // arrow_btn after coditioning and edge detection.
-  sig easy_numlist[10][8]; // array of 10 8-bits number for easy difficulty
-  sig normal_numlist[10][8]; // array of 10 8-bits number for normal difficulty
-  sig hard_numlist[10][8]; // array of 10 8-bits number for hard difficulty
+  sig easy_numlist[10][4]; // array of 10 8-bits number for easy difficulty
+  sig normal_numlist[10][4]; // array of 10 8-bits number for normal difficulty
+  sig hard_numlist[10][4]; // array of 10 8-bits number for hard difficulty
   var i;
   var j;
-  var empty_slots;
+  var empty_slots[8];
   
   .clk(clk) {
     // The reset conditioner is used to synchronize the reset signal to the FPGA
@@ -49,6 +49,8 @@ module mojo_top (
                                                    // row/col are backwards: (1,2,3)(4,5,6)(7, ,8)
       dff new_tile_index1[4];
       dff new_tile_index2[4];
+      dff new_tile_num[4];
+      dff new_tile_pos[4];
       fsm game_step = { // Current step in game logic.
         WAIT_START,
         COUNT_EMPTY,
@@ -90,9 +92,9 @@ module mojo_top (
     spi_channel = bzzzz;      // not using flags
     avr_rx = bz;              // not using serial port
     rand_gen.seed = 128h843233523a613966423b622562592c62; // change to whatever you like
-    easy_numlist = {8b000001, 8b000001,8b000001,8b000001,8b000010,8b000010,8b000010,8b000001,8b000011,8b000011};
-    normal_numlist = {8b000001, 8b000001,8b000001,8b000010,8b000010,8b000010,8b000010,8b000100,8b000011,8b000011};
-    hard_numlist = {8b000001, 8b000001,8b000001,8b000010,8b000010,8b000010,8b000010,8b000100,8b000011,8b000011};
+    easy_numlist = {4h1, 4h1,4h1,4h1,4h2,4h2,4h2,4h1,4h3,4h3};
+    normal_numlist = {4h1, 4h1,4h1,4h2,4h2,4h2,4h2,4h4,4h3,4h3};
+    hard_numlist = {4h1, 4h1,4h1,4h2,4h2,4h2,4h2,4h4,4h3,4h3};
     // END: Fixed signals
     
     
@@ -145,11 +147,17 @@ module mojo_top (
         }
         
       game_step.COUNT_EMPTY:
+        empty_slots = 8b00000000;
         for (i = 0; i < 3; i++) {
           for(j=0; j < 3; j++) {
+            if (game_state.q[i][j] == 4b1111) {
+              empty_slots = empty_slots + 8b00000001;
+            }
           }
         }
-        if (empty_slots == 15) { // go to next step
+        if (empty_slots == 8b00000000) { // you've lost the game
+        }
+        else { // go make some randint
         }
       game_step.MAKE_RAND1:
         case(randint_step.q) {
@@ -174,16 +182,21 @@ module mojo_top (
           randint_step.MULTIPLY: // multiply by 10
             alu.alufn = 6b000010;
             alu.a = alu.out; // I need to convert this to binary point but idk how
-            alu.b = 8b00001010;
+            alu.b = empty_slots;
           randint_step.EXTRACT:
             new_tile_index2.d = alu.out[7:4]; // store 4 highest bits into new_tile_num
         }
         game_state.d = game_state.q; // null op
       game_step.SELECT_NUM:
-        new_tile_index1.d = new_tile_index1.q; // preserve for subsequent cycle
+        new_tile_index1.d = new_tile_index1.q; // preserve for subsequent cycles
         new_tile_index2.d = new_tile_index2.q;
+        new_tile_num.d = easy_numlist[new_tile_index1.q];
+        
         game_state.d = game_state.q; // null op
-      game_step.SELECT_POS:
+      game_step.SELECT_POS: // TODO: This method of choosing position is not correct fix later
+        new_tile_num.d = new_tile_num.q;
+        new_tile_pos.d = game_state.q[0][new_tile_index2.q]; // TODO: Change 0 to real index based on arrow press
+        
         game_state.d = game_state.q; // null op
       game_step.ADD_NUM:
         game_state.d = game_state.q; // null op
