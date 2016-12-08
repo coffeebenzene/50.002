@@ -62,11 +62,9 @@ module mojo_top (
     counter randseed(.rst(zero), #SIZE(32)); // unresettable counter.
     
     .rst(rst) {
-      //dff game_state[3][3][4](#INIT(36hfffffffff)); // row/col are backwards: 36h123456789
-                                                      // is (9,8,7)(6,5,4)(3,2,1)
       // Global variables
-      dff game_state[3][3][4](#INIT(36h98f9ff885)); // FOR TESTING.
-                                                    // row/col are backwards: (1,2,3)(4,5,6)(7, ,8)
+      dff game_state[3][3][4](#INIT(36hfffffffff)); // row/col are backwards: 36h123456789
+                                                      // is (9,8,7)(6,5,4)(3,2,1)
       dff difficulty[2];
       dff rowindex[2]; // Common registers for indexing row/col.
       dff colindex[2];
@@ -145,7 +143,7 @@ module mojo_top (
     
     rand_gen.seed = randseed.value; // Seed based on absolute time.
     
-    very_easy_numlist = {4h0,4h0,4h0,4h0,4h0,4h0,4h0,4h0};
+    very_easy_numlist = {4h2,4h2,4h2,4h2,4h2,4h2,4h2,4h2};
     easy_numlist = {4h0,4h0,4h0,4h0,4h1,4h1,4h1,4h2};
     hard_numlist = {4h0,4h0,4h1,4h1,4h1,4h2,4h2,4h3};
     crazy_numlist = {4h0,4h1,4h2,4h3,4h4,4h5,4h1,4h0};
@@ -213,7 +211,7 @@ module mojo_top (
               numlist.d =  easy_numlist;
           }
           
-          game_state.d = { {4h0,4h0,4h0}, {4h0,4h0,4h0}, {4h0,4h0,4h0} };
+          game_state.d = { {4hf,4hf,4hf}, {4hf,4hf,4hf}, {4hf,4hf,4hf} };
           rowindex.d = 2d0;
           colindex.d = 2d0;
           empty_slots.d = 4d0;

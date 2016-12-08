@@ -16,15 +16,15 @@ NET "display_digit<4>" LOC = P80 | IOSTANDARD = LVTTL;
 NET "display_digit<5>" LOC = P82 | IOSTANDARD = LVTTL;
 NET "display_digit<6>" LOC = P84 | IOSTANDARD = LVTTL;
 
-NET "arrow_btn<0>"  LOC = P88 | IOSTANDARD = LVTTL | PULLDOWN;
-NET "arrow_btn<1>"  LOC = P93 |  IOSTANDARD = LVTTL | PULLDOWN;
-NET "arrow_btn<2>"  LOC = P95 | IOSTANDARD = LVTTL | PULLDOWN;
-NET "arrow_btn<3>"  LOC = P98 | IOSTANDARD = LVTTL | PULLDOWN;
+NET "arrow_btn<0>"  LOC = P51 | IOSTANDARD = LVTTL | PULLDOWN;
+NET "arrow_btn<1>"  LOC = P41 |  IOSTANDARD = LVTTL | PULLDOWN;
+NET "arrow_btn<2>"  LOC = P35 | IOSTANDARD = LVTTL | PULLDOWN;
+NET "arrow_btn<3>"  LOC = P33 | IOSTANDARD = LVTTL | PULLDOWN;
 
-NET "start_game"  LOC = P102 | IOSTANDARD = LVTTL | PULLDOWN;
+NET "start_game"  LOC = P26 | IOSTANDARD = LVTTL | PULLDOWN;
 
-NET "win_led" LOC = P112 | IOSTANDARD = LVTTL;
-NET "lose_led" LOC = P117 | IOSTANDARD = LVTTL;
+NET "win_led" LOC = P115 | IOSTANDARD = LVTTL;
+NET "lose_led" LOC = P119 | IOSTANDARD = LVTTL;
 
 NET "difficulty_led<0>" LOC = P101 | IOSTANDARD = LVTTL;
 NET "difficulty_led<1>" LOC = P104 | IOSTANDARD = LVTTL;
