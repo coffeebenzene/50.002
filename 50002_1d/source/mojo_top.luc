@@ -39,8 +39,10 @@ module mojo_top (
   sig rst;                  // reset signal
   sig zero;                 // fixed 1bit 0.
   sig arrow_press[4];          // arrow_btn after coditioning and edge detection.
-  sig normal_numlist[8][4]; // array of 8 numbers for normal difficulty
+  sig very_easy_numlist[8][4]; // array of 8 numbers for very easy difficulty
+  sig easy_numlist[8][4]; // array of 8 numbers for easy difficulty
   sig hard_numlist[8][4]; // array of 8 numbers for hard difficulty
+  sig crazy_numlist[8][4]; // array of 8 numbers for hard difficulty
   
   .clk(clk) {
     // The reset conditioner is used to synchronize the reset signal to the FPGA
@@ -75,7 +77,7 @@ module mojo_top (
       dff new_pos[2][2]; // new_pos[0] is row new_pos[1] is col.
       
       fsm game_step = { // Current step in game logic.
-        START,
+        WAIT_START,
         COUNT_EMPTY,
         CHECK_LOSE,
         MAKE_RAND1,
@@ -143,8 +145,10 @@ module mojo_top (
     
     rand_gen.seed = randseed.value; // Seed based on absolute time.
     
-    normal_numlist = {4h0,4h0,4h0,4h0,4h1,4h1,4h1,4h2};
+    very_easy_numlist = {4h0,4h0,4h0,4h0,4h0,4h0,4h0,4h0};
+    easy_numlist = {4h0,4h0,4h0,4h0,4h1,4h1,4h1,4h2};
     hard_numlist = {4h0,4h0,4h1,4h1,4h1,4h2,4h2,4h3};
+    crazy_numlist = {4h0,4h1,4h2,4h3,4h4,4h5,4h1,4h0};
     // END: Fixed signals
     
     
@@ -185,24 +189,38 @@ module mojo_top (
     display_digit = m_display.display_digit;
     
     difficulty_led = difficulty.q;
+    led[1:0] = difficulty.q;
     // END: Display block
     
     
     
     //START: Game block
     case(game_step.q){
-      game_step.START:
+      game_step.WAIT_START:
         if(|arrow_press){
-          numlist.d =  hard_numlist;
-          difficulty.d = 2b10;
+          case(direction_enc.out){
+            0: // Up: Ultra easy
+              difficulty.d = 2b00;
+              numlist.d =  very_easy_numlist;
+            1: // Down: crazy
+              difficulty.d = 2b11;
+              numlist.d =  crazy_numlist;
+            2: // Left: hard
+              difficulty.d = 2b10;
+              numlist.d =  hard_numlist;
+            3: // Right: easy
+              difficulty.d = 2b01;
+              numlist.d =  easy_numlist;
+          }
+          
+          game_state.d = { {4h0,4h0,4h0}, {4h0,4h0,4h0}, {4h0,4h0,4h0} };
+          rowindex.d = 2d0;
+          colindex.d = 2d0;
+          empty_slots.d = 4d0;
+          game_step.d = game_step.COUNT_EMPTY;
         } else {
-          numlist.d =  normal_numlist;
-          difficulty.d = 2b01;
+          game_state.d = { {4ha,4ha,4ha}, {4ha,4ha,4ha}, {4ha,4ha,4ha} };
         }
-        rowindex.d = 2d0;
-        colindex.d = 2d0;
-        empty_slots.d = 4d0;
-        game_step.d = game_step.COUNT_EMPTY;
         
       game_step.COUNT_EMPTY:
         // Check if slot is empty.
