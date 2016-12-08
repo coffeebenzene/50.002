@@ -1,17 +1,19 @@
-#SUTD 50.002 Group Projects
+# 10!
 
-###Members:
+A hardware game inspired by [2048](http://2048game.com/).
 
-- 1001526 Eric Teo
-- 1001694 Tasya Aditya Rukmana
-- 1001692 Nguyen The Hung (Stanley)
+## Game Description
 
-###MOJO Adder tester:
+### 1.Overview
 
-- Uses I/O shield.
-- Displays the test results in the rightmost leds.
-- Displays the input to adder in the middle leds. (In order from right to left, abc.)
-- Displays the expected output from adder in the first 2 left leds (first from right.)
-- Displays actual output from adder in the last 2 left leds.
-- The step module runs on its own reset. The state machine will reset the step module when initialised to make sure the step module is in sync.
-Advances to next test after 2s.
+### 2. Getting Started
+
+### 3. How to Play
+
+## Implementation Analysis
+
+### 1. Overall finite state machine design
+
+### 2. Number & Position randomizer
+
+### 3. Display mechanism
