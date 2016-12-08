@@ -38,9 +38,6 @@ module mojo_top (
   sig rst;                  // reset signal
   sig zero;                 // fixed 1bit 0.
   sig arrow_press[4];          // arrow_btn after coditioning and edge detection.
-  
-  // TODO: check/remove this. May not be necessary.
-  sig easy_numlist[8][4]; // array of 8 numbers for easy difficulty
   sig normal_numlist[8][4]; // array of 8 numbers for normal difficulty
   sig hard_numlist[8][4]; // array of 8 numbers for hard difficulty
   
@@ -73,15 +70,10 @@ module mojo_top (
       dff numlist[8][4]; // List of numbers to pick from.
                          // 8 numbers for uniform distribution of prng.
       dff new_num[4];
-      dff new_pos[4];
+      dff new_pos[2][2]; // new_pos[0] is row new_pos[1] is col.
       
-      // TODO: Check.
-      dff new_tile_index1[4];
-      dff new_tile_index2[4];
-      dff new_tile_num[4];
-      dff new_tile_pos[4];
       fsm game_step = { // Current step in game logic.
-        WAIT_START,
+        START,
         COUNT_EMPTY,
         CHECK_LOSE,
         MAKE_RAND1,
@@ -149,11 +141,8 @@ module mojo_top (
     
     rand_gen.seed = randseed.value; // Seed based on absolute time.
     
-    // TODO: Check
-    easy_numlist = {4h1,4h1,4h1,4h1,4h2,4h2,4h2,4h1};
-    normal_numlist = {4h1,4h1,4h1,4h2,4h2,4h2,4h2,4h4};
-    hard_numlist = {4h1,4h1,4h1,4h2,4h2,4h2,4h2,4h4};
-    numlist.d = normal_numlist;
+    normal_numlist = {4h0,4h0,4h0,4h0,4h1,4h1,4h1,4h2};
+    hard_numlist = {4h0,4h0,4h1,4h1,4h1,4h2,4h2,4h3};
     // END: Fixed signals
     
     
@@ -163,6 +152,9 @@ module mojo_top (
     rowindex.d = rowindex.q;
     colindex.d = colindex.q;
     empty_slots.d = empty_slots.q;
+    numlist.d = numlist.q;
+    randint1.d = randint1.q;
+    randint2.d = randint2.q;
     
     alu.alufn = 6b000000;
     alu.a = 8b0;
@@ -195,27 +187,16 @@ module mojo_top (
     
     //START: Game block
     case(game_step.q){
-      game_step.WAIT_START:
-        // FOR TESTING.
+      game_step.START:
         if(|arrow_press){
-          if (direction_enc.out == 0){
-            game_state.d[0][1] =  game_state.q[0][1] + 1;
-          }
-          if (direction_enc.out == 1){
-            game_state.d[2][1] =  game_state.q[2][1] + 1;
-          }
-          if (direction_enc.out == 2){
-            game_state.d[1][0] =  game_state.q[1][0] + 1;
-          }
-          if (direction_enc.out == 3){
-            game_state.d[1][2] =  game_state.q[1][2] + 1;
-          }
+          numlist.d =  hard_numlist;
+        } else {
+          numlist.d =  normal_numlist;
         }
         rowindex.d = 2d0;
         colindex.d = 2d0;
         empty_slots.d = 4d0;
-        // game_step.d = game_step.COUNT_EMPTY; // TODO: DEBUG
-        game_step.d = game_step.WAIT_INPUT; // TODO: DEBUG
+        game_step.d = game_step.COUNT_EMPTY;
         
       game_step.COUNT_EMPTY:
         // Check if slot is empty.
@@ -245,6 +226,8 @@ module mojo_top (
         if (alu.out){
 		       game_step.d = game_step.LOSE;
         } else {
+          randint1.d = 0;
+          randint2.d = 0;
           game_step.d = game_step.MAKE_RAND1;
           randint_step.d = randint_step.BITMASK;
         }
@@ -294,16 +277,37 @@ module mojo_top (
         
       game_step.SELECT_NUM: // Select the new number to insert.
         new_num.d = numlist.q[randint1.q];
+        rowindex.d = 2d0;
+        colindex.d = 2d0;
         game_step.d = game_step.SELECT_POS;
         
-      game_step.SELECT_POS: // TODO: This method of choosing position is not correct fix later
-        new_tile_num.d = new_tile_num.q;
-        new_tile_pos.d = game_state.q[0][new_tile_index2.q]; // TODO: Change 0 to real index based on arrow press
-
-        game_step.d = game_step.ADD_NUM; // null op advance
+      game_step.SELECT_POS: // Select the new tile position by counting.
+        // Check if slot is empty.
+        alu.a = c{ 4h0, game_state.q[rowindex.q][colindex.q] };
+        alu.b = 8h0f;
+        alu.alufn = Alufn.CMPEQ;
+        if (alu.out){
+		       if (randint2.q==0){
+            new_pos.d[0] = rowindex.q;
+            new_pos.d[1] = colindex.q;
+          }
+          randint2.d = randint2.q-1;
+        }
+        // Advance to next slot, or go to next step if done.
+        rowindex.d = rowindex.q + 1;
+        if (rowindex.q == 2){ // if row is at 2, instead of incrementing, reset to 0.
+          rowindex.d = 0;
+          
+          colindex.d = colindex.q + 1;
+          if (colindex.q == 2){ // End of check. Next step.
+            colindex.d = 0;
+            game_step.d = game_step.ADD_NUM;
+          }
+        }
         
-      game_step.ADD_NUM: // TODO: Implement
-        game_step.d = game_step.WAIT_INPUT; // null op advance
+      game_step.ADD_NUM:
+        game_state.d[new_pos.q[0]][new_pos.q[1]] = new_num.q;
+        game_step.d = game_step.WAIT_INPUT;
         
       game_step.WAIT_INPUT:
         if(|arrow_press){
