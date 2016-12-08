@@ -25,3 +25,6 @@ NET "start_game"  LOC = P102 | IOSTANDARD = LVTTL | PULLDOWN;
 
 NET "win_led" LOC = P112 | IOSTANDARD = LVTTL;
 NET "lose_led" LOC = P117 | IOSTANDARD = LVTTL;
+
+NET "difficulty_led<0>" LOC = P101 | IOSTANDARD = LVTTL;
+NET "difficulty_led<1>" LOC = P104 | IOSTANDARD = LVTTL;

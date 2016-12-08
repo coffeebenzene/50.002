@@ -32,7 +32,8 @@ module mojo_top (
     input arrow_btn[4],      // Arrow buttons. 0-up 1-down 2-left 3-right
     input start_game,        // Start/restart game button. Connected to reset.
     output win_led,
-    output lose_led
+    output lose_led,
+    output difficulty_led[2]     // one-hot. 2b01 for normal, 2b10 for hard.
   ) {
   
   sig rst;                  // reset signal
@@ -64,6 +65,7 @@ module mojo_top (
       // Global variables
       dff game_state[3][3][4](#INIT(36h98f9ff885)); // FOR TESTING.
                                                     // row/col are backwards: (1,2,3)(4,5,6)(7, ,8)
+      dff difficulty[2];
       dff rowindex[2]; // Common registers for indexing row/col.
       dff colindex[2];
       dff empty_slots[4]; // number of empty tiles.
@@ -181,6 +183,8 @@ module mojo_top (
     m_display.game_state = game_state.q;
     display_select = m_display.display_select;
     display_digit = m_display.display_digit;
+    
+    difficulty_led = difficulty.q;
     // END: Display block
     
     
@@ -190,8 +194,10 @@ module mojo_top (
       game_step.START:
         if(|arrow_press){
           numlist.d =  hard_numlist;
+          difficulty.d = 2b10;
         } else {
           numlist.d =  normal_numlist;
+          difficulty.d = 2b01;
         }
         rowindex.d = 2d0;
         colindex.d = 2d0;
