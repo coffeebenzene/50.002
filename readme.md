@@ -186,3 +186,50 @@ machine, the details of the shifting step are isolated from the rest of the step
 ![shifting datapath](./docs/img/shifting_datapath.png)
 
 ### 5. Multiplexed Display
+
+![display](./docs/img/display_schematic.png)
+
+We decided on using a multiplexed display early on. The initial plan was to
+connect the a,b,c,d,e,f,g segment inputs to a demux, thus the selection occurs
+on the a,b,c,d,e,f,g signals. However, we realised that this was inefficient and
+required very significant soldering complexity. Then we thought of demuxing the
+common anode instead. However, there would not be a significant different between
+connecting the common anodes directly to the MOJO vs to a demux first (9 wires
+vs 4 wires). This further reduced the soldering required. Thus no demuxes were used.
+
+It was also noted that multiplexing too many displays would greatly dim the
+displays, which would potentially make the displays impossible to see. In
+response to this, the game board was reduced from 4x4 to 3x3, reducing the number
+of displays to demux.
+
+The 9 7-segment displays have each of the a,b,c,d,e,f,g segment inputs wired to
+the same line into the MOJO, and the 9 common anodes are individually connected
+to the MOJO. As common anode displays are used, the inputs to the a,b,c,d,e,f,g
+segments are active high while the inputs to the common anode are active low.
+
+The multiplex display module in the MOJO cycles through each cell in the game
+board and activates the corresponding 7-segment display for that cell, while
+outputting the required a,b,c,d,e,f,g signals to the 7-segment display. At any
+point in time, only 1 7-segment display is actually lighted up. Due to this,
+the displays are 1/9 their maximum brightness. Which is relatively dim. In
+exchange, we need only 18 wires into the MOJO instead of 72 wires.
+
+The MOJO multiplex display module advances to the next cell after 2^14 cycles
+(~3051Hz). Since there are 9 displays to advance through, a complete multiplexing
+cycle takes ~3051Hz/9 = 339Hz, or about 2.9ms. This speed was chosen as a full
+cycle is faster than 240Hz, making completely flicker free displays. The displays
+cannot be cycled at too high a frequency, as the display needs time to stabilise
+and recover from changes in bias.
+
+## Team Members
+
+- Eric Teo
+- Tasya Aditya Rukmana
+- Nguyen The Hung (Stanley)
+
+## Acknowledgements
+
+SUTD 50.002 Computation Structures instructors:
+
+- Prof. Oka Kurniawan
+- Prof. Zhang Yue
