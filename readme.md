@@ -66,7 +66,41 @@ Have fun playing! :boom: :tada: :confetti_ball:
 
 ## In-depth Technical Analysis
 
-### 1. Overall finite state machine design
+### 1. Overall datapath:
+
+![data path](./docs/img/datapath.png)
+
+The high level datapath is shown above. The processor receives input from buttons,
+which are fed into the game logic circuit. Blocks with an angled cut at top left
+represent registers rather than circuit blocks.
+
+The game logic circuit consists of the main bulk of the circuit. As an analogy
+to a CPU, the game logic combinatorial circuit functions similarly to the
+control unit. It directs what needs to be sent to the ALU, read/written into
+registers and manages the game step state machine. Miscellaneous non-ALU operations
+are also included in this circuit.
+
+The game step state machine acts like a program counter in a CPU. It stores the
+state of which instructions should be carried out. Unlike a CPU, there is no
+memory address, each state directly corresponds to a specific instruction.
+Sub-step state machines are also considered part of this portion (elaborated in
+the game_step state machine part).
+
+The game state + registers acts like the register file of a CPU. The working
+data of the program is stored is these registers.
+
+Unlike a Von Neumann machine, output is directly driven by the register memory
+instead of being controlled by the logic circuit. There is no shared bus.
+There is a multiplexed display circuit to display the 3x3 array of 7 segments,
+to reduce number of wires to the mojo.
+
+This design was chosen due to its simplicity and effectiveness in modularising
+blocks of circuits. Thus, we can work on specific parts independently and then
+bring the components together to use. The adoption of a control unit + program
+counter style of operation allows the logical steps to be very modular and easy
+to work with.
+
+### 2. Overall finite state machine design
 
 ![state machine](./docs/img/state_machine.png)
 
@@ -121,6 +155,34 @@ would be simpler to plan and code. Furthermore, the entire cycle runs so fast
 that speed does not matter (the loop takes 91 cycles, or 1.82ms. The multiplexed
 display refreshes slower than this!).
 
-### 2. Number & Position randomizer
+### 3. RandomInt Datapath
 
-### 3. Display mechanism
+The pseudo random number generator provided by the mojo generates random bits.
+However, in MAKE_RAND2, we need to select from the empty cells. Thus, we need to
+generate random integers within a range that we control. The following diagram
+shows the datapath to generate the random integer.
+
+![randint datapath](./docs/img/randint_datapath.png)
+
+The pseudo random number generator provided by the mojo generates random bits.
+However, in MAKE_RAND2, we need to select from the empty cells. Thus, we need to
+generate random integers within a range that we control. The following diagram
+shows the datapath to generate the random integer.
+
+### 4. Shifting Datapath
+
+The diagram shows the overall flow of the shifting datapath. In this step, both
+row and column of the game board are referred to as “row”, the relevant one
+depending on the direction of shifting. The “row” is aligned with the direction
+of shifting.
+
+COLLATE_OUT actually consists of 4 substates, and it iterates through each cell
+in the row.
+COLLATE_IN consists of 3 substates, and also iterates through each cell in the row.
+All 3 steps are run 3 times to iterate for each row on the game board to shift.
+By effectively “nesting” a sub-step state machine within the game_step state
+machine, the details of the shifting step are isolated from the rest of the step, modularising the circuit.
+
+![shifting datapath](./docs/img/shifting_datapath.png)
+
+### 5. Multiplexed Display
