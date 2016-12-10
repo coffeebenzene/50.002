@@ -7,9 +7,7 @@ A hardware game inspired by [2048](http://2048game.com/).
 ### 1.Overview
 
 ![overview 1](./docs/img/overview_1.JPG)
-
 ![overview 2](./docs/img/overview_2.JPG)
-
 ![overview 3](./docs/img/overview_3.JPG)
 
 This is an overview of the game. The above pictures are the game interface.
